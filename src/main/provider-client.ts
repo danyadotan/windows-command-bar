@@ -23,6 +23,7 @@ export class ProviderGateway {
   async generate(provider: ProviderId, apiKey: string, prompt: string): Promise<ProviderGeneration> {
     if (provider === 'openai') return this.openAI(apiKey, prompt);
     if (provider === 'anthropic') return this.anthropic(apiKey, prompt);
+    if (provider === 'zai') return this.zai(apiKey, prompt);
     throw new Error(`${provider} עדיין אינו מחובר ליצירת טקסט`);
   }
 
@@ -51,5 +52,18 @@ export class ProviderGateway {
     const text = (payload.content ?? []).filter(item => item.type === 'text').map(item => item.text ?? '').join('');
     if (!text) throw new Error('Anthropic החזיר תשובה ללא טקסט');
     return { text, model: payload.model ?? model, inputTokens: payload.usage?.input_tokens ?? 0, outputTokens: payload.usage?.output_tokens ?? 0 };
+  }
+
+  private async zai(apiKey: string, prompt: string): Promise<ProviderGeneration> {
+    const model = process.env.WINPILOT_ZAI_MODEL || 'glm-4.6';
+    const response = await this.request('https://api.z.ai/api/paas/v4/chat/completions', {
+      method: 'POST', headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!response.ok) throw await apiError(response);
+    const payload = await response.json() as { model?: string; choices?: Array<{ message?: { content?: string } }>; usage?: { prompt_tokens?: number; completion_tokens?: number } };
+    const text = payload.choices?.[0]?.message?.content ?? '';
+    if (!text) throw new Error('Z.ai החזיר תשובה ללא טקסט');
+    return { text, model: payload.model ?? model, inputTokens: payload.usage?.prompt_tokens ?? 0, outputTokens: payload.usage?.completion_tokens ?? 0 };
   }
 }

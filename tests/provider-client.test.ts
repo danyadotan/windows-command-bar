@@ -21,4 +21,12 @@ describe('ProviderGateway', () => {
     const request = vi.fn(async () => new Response(JSON.stringify({ error: { message: 'invalid key' } }), { status: 401 }));
     await expect(new ProviderGateway(request as typeof fetch).generate('openai', 'super-secret', 'hello')).rejects.toThrow('מפתח API');
   });
+
+  it('uses the documented Z.ai chat completions endpoint', async () => {
+    const request = vi.fn(async () => new Response(JSON.stringify({ model: 'glm-test', choices: [{ message: { content: 'בוצע' } }], usage: { prompt_tokens: 9, completion_tokens: 3 } }), { status: 200 }));
+    const result = await new ProviderGateway(request as typeof fetch).generate('zai', 'zai-secret', 'hello');
+    expect(result).toMatchObject({ text: 'בוצע', model: 'glm-test', inputTokens: 9, outputTokens: 3 });
+    expect(request.mock.calls[0][0]).toBe('https://api.z.ai/api/paas/v4/chat/completions');
+    expect((request.mock.calls[0][1]?.headers as Record<string, string>).authorization).toBe('Bearer zai-secret');
+  });
 });
