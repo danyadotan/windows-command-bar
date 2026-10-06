@@ -8,7 +8,7 @@ MVP for a Windows command bar that combines AI text assistance with safe local a
 - Hebrew-first RTL interface
 - Provider selector for OpenAI, Anthropic, Z.ai and Devin
 - Local intent planner for Windows Update, file organization and app installation
-- Risk labels and explicit approval boundaries; this version does **not** execute system commands
+- Risk labels and explicit approval boundaries for the small allow-listed set of supported system actions
 - Context-isolated renderer with a narrow IPC bridge
 - Local memory library for links, notes, inspiration and screenshots copied to the clipboard
 - Automatic local collections and tags, plus library search
@@ -46,4 +46,12 @@ npm run build
 npm start
 ```
 
-Saved content lives under Electron's per-user application-data directory and is not sent to an AI provider. The first release deliberately stops at previewing plans. The next milestone is a signed Windows helper that executes allow-listed PowerShell/winget actions only after explicit approval, plus encrypted API-key storage using Windows Credential Manager.
+## Build the Windows installer
+
+```bash
+npm run package:win
+```
+
+The NSIS installer is written to `release/`. Pull requests also publish it as the `WinPilot-Windows-unsigned` GitHub Actions artifact. It is suitable for internal testing only until an Authenticode certificate is configured; see [the release guide](docs/RELEASE.md).
+
+Saved content lives under Electron's per-user application-data directory and is not sent to an AI provider. Supported changes remain narrowly allow-listed and require explicit confirmation; Windows may display a separate elevation prompt when winget or an installer requires it.
