@@ -1,4 +1,4 @@
-import type { CommandRequest, CommandResponse, ConfigureProviderRequest, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem } from '../shared/contracts';
+import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem } from '../shared/contracts';
 declare global { interface Window { winpilot: {
   plan(request: CommandRequest): Promise<CommandResponse>;
   listSaved(): Promise<SavedItem[]>;
@@ -15,5 +15,6 @@ declare global { interface Window { winpilot: {
   runtimeSummary(): Promise<RuntimeSummary>;
   routePreview(request: CommandRequest): Promise<RoutingDecision>;
   localRuntimeStatus(): Promise<LocalRuntimeStatus>;
+  createDevinSession(prompt: string, confirmed: boolean): Promise<DevinSession>;
 } } }
 export {};

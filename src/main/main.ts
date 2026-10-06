@@ -10,6 +10,7 @@ import { routeTask } from './model-router';
 import { RuntimeMonitor } from './runtime-monitor';
 import { LocalRuntime } from './local-runtime';
 import { ProviderGateway } from './provider-client';
+import { DevinClient } from './devin-client';
 
 let window: BrowserWindow | null = null;
 
@@ -36,6 +37,7 @@ app.whenReady().then(() => {
   const monitor = new RuntimeMonitor(path.join(app.getPath('userData'), 'secure'), cipher);
   const localRuntime = new LocalRuntime();
   const providers = new ProviderGateway();
+  const devin = new DevinClient();
   ipcMain.handle('command:plan', async (_event, request: CommandRequest) => {
     const started = Date.now();
     const route = routeTask(request, localRuntime.status().configured);
@@ -60,7 +62,7 @@ app.whenReady().then(() => {
   ipcMain.handle('library:save', (_event, request: SaveItemRequest) => library.save(request));
   ipcMain.handle('library:save-screenshot', () => library.saveScreenshot(clipboard.readImage().toPNG()));
   ipcMain.handle('provider:statuses', () => vault.statuses());
-  ipcMain.handle('provider:configure', (_event, request: ConfigureProviderRequest) => vault.configure(request.id, request.apiKey));
+  ipcMain.handle('provider:configure', (_event, request: ConfigureProviderRequest) => vault.configure(request.id, request.apiKey, request.organizationId));
   ipcMain.handle('provider:remove', (_event, id: ProviderId) => vault.remove(id));
   ipcMain.handle('forms:get', () => forms.get());
   ipcMain.handle('forms:save-profile', (_event, profile: Omit<FormProfile, 'id'> & { id?: string }) => forms.saveProfile(profile));
@@ -70,6 +72,12 @@ app.whenReady().then(() => {
   ipcMain.handle('runtime:summary', () => monitor.summary());
   ipcMain.handle('runtime:route-preview', (_event, request: CommandRequest) => routeTask(request, localRuntime.status().configured));
   ipcMain.handle('runtime:local-status', () => localRuntime.status());
+  ipcMain.handle('devin:create-session', async (_event, request: { prompt: string; confirmed: boolean }) => {
+    if (!request.confirmed) throw new Error('נדרש אישור מפורש להפעלת Devin');
+    const [apiKey, organizationId] = await Promise.all([vault.get('devin'), vault.getDevinOrganizationId()]);
+    if (!apiKey || !organizationId) throw new Error('יש להגדיר טוקן ו־Organization ID עבור Devin');
+    return devin.createSession(apiKey, organizationId, request.prompt);
+  });
   const notifiedDrafts = new Set<string>();
   setInterval(async () => {
     for (const draft of await forms.due()) {

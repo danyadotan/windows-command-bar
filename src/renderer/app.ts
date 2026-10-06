@@ -39,8 +39,25 @@ async function submit() {
   const route = await window.winpilot.routePreview(request);
   saveStatus.textContent = `${route.model} · ${route.reason} · כ־${route.estimatedInputTokens} טוקנים`;
   if (route.tier === 'privacy-hold') { result.hidden = false; result.replaceChildren(); const message = document.createElement('p'); message.textContent = route.reason; result.append(message); return; }
+  if (request.provider === 'devin') { renderDevinApproval(request.text); return; }
   try { render(await window.winpilot.plan(request)); }
   catch (error) { result.hidden = false; result.textContent = error instanceof Error ? error.message : 'המשימה נכשלה'; }
+}
+
+function renderDevinApproval(task: string) {
+  result.hidden = false; result.replaceChildren();
+  const heading = document.createElement('h2'); heading.textContent = 'הפעלת Devin agent';
+  const warning = document.createElement('p'); warning.textContent = 'הפעולה תיצור session חיצוני שעשוי לצרוך מכסה או לגרור עלות. המשימה תישלח ל־Devin רק לאחר האישור הבא.';
+  const button = document.createElement('button'); button.className = 'confirm-agent'; button.textContent = 'אישור ויצירת session';
+  button.addEventListener('click', async () => {
+    if (button.dataset.url) { await window.winpilot.openForm(button.dataset.url); return; }
+    button.disabled = true; button.textContent = 'יוצר session…';
+    try {
+      const session = await window.winpilot.createDevinSession(task, true);
+      button.textContent = `פתיחת Devin · ${session.status}`; button.disabled = false; button.dataset.url = session.url;
+    } catch (error) { button.disabled = false; button.textContent = 'ניסיון נוסף'; warning.textContent = error instanceof Error ? error.message : 'יצירת session נכשלה'; }
+  });
+  result.append(heading, warning, button);
 }
 
 function showLibrary(items: SavedItem[]) {
@@ -75,15 +92,16 @@ function providerRow(status: ProviderStatus) {
   const state = document.createElement('small'); state.textContent = status.configured ? `מחובר · ${status.mode === 'agent' ? 'סוכן' : 'צ׳אט'}` : 'לא מחובר';
   info.append(name, state);
   const input = document.createElement('input'); input.type = 'password'; input.placeholder = 'API key'; input.autocomplete = 'off';
+  const organization = document.createElement('input'); organization.placeholder = 'Organization ID'; organization.hidden = status.id !== 'devin'; organization.autocomplete = 'off';
   const button = document.createElement('button'); button.textContent = status.configured ? 'ניתוק' : 'חיבור';
   button.addEventListener('click', async () => {
     try {
       if (status.configured) await window.winpilot.removeProvider(status.id);
-      else await window.winpilot.configureProvider({ id: status.id, apiKey: input.value });
+      else await window.winpilot.configureProvider({ id: status.id, apiKey: input.value, organizationId: status.id === 'devin' ? organization.value : undefined });
       settingsDialog.close(); await showProviderSettings();
     } catch (error) { state.textContent = error instanceof Error ? error.message : 'הפעולה נכשלה'; state.className = 'error'; }
   });
-  row.append(info, input, button); return row;
+  row.append(info, input); if (status.id === 'devin') row.append(organization); row.append(button); return row;
 }
 
 async function refreshForms() {

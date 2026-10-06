@@ -28,13 +28,15 @@ export class ProviderVault {
     return PROVIDERS.map(provider => ({ ...provider, configured: Boolean(secrets[provider.id]) }));
   }
 
-  async configure(id: ProviderId, apiKey: string): Promise<void> {
+  async configure(id: ProviderId, apiKey: string, organizationId?: string): Promise<void> {
     if (!this.cipher.available()) throw new Error('הצפנה מאובטחת אינה זמינה במחשב זה');
     const clean = apiKey.trim();
     if (clean.length < 8) throw new Error('מפתח ה־API קצר מדי');
     if (!PROVIDERS.some(provider => provider.id === id)) throw new Error('ספק לא מוכר');
     const secrets = await this.read();
-    secrets[id] = this.cipher.encrypt(clean).toString('base64');
+    if (id === 'devin' && !organizationId?.trim()) throw new Error('נדרש Devin Organization ID');
+    const value = id === 'devin' ? JSON.stringify({ apiKey: clean, organizationId: organizationId?.trim() }) : clean;
+    secrets[id] = this.cipher.encrypt(value).toString('base64');
     await this.write(secrets);
   }
 
@@ -46,7 +48,17 @@ export class ProviderVault {
 
   async get(id: ProviderId): Promise<string | undefined> {
     const encrypted = (await this.read())[id];
-    return encrypted ? this.cipher.decrypt(Buffer.from(encrypted, 'base64')) : undefined;
+    if (!encrypted) return undefined;
+    const value = this.cipher.decrypt(Buffer.from(encrypted, 'base64'));
+    if (id !== 'devin') return value;
+    try { return (JSON.parse(value) as { apiKey?: string }).apiKey; } catch { return value; }
+  }
+
+  async getDevinOrganizationId(): Promise<string | undefined> {
+    const encrypted = (await this.read()).devin;
+    if (!encrypted) return undefined;
+    try { return (JSON.parse(this.cipher.decrypt(Buffer.from(encrypted, 'base64'))) as { organizationId?: string }).organizationId; }
+    catch { return undefined; }
   }
 
   private async read(): Promise<EncryptedSecrets> {

@@ -52,6 +52,13 @@ export interface ProviderStatus {
 export interface ConfigureProviderRequest {
   id: ProviderId;
   apiKey: string;
+  organizationId?: string;
+}
+
+export interface DevinSession {
+  id: string;
+  url: string;
+  status: string;
 }
 
 export interface FormProfile {

@@ -24,4 +24,13 @@ describe('ProviderVault', () => {
     const root = await mkdtemp(path.join(tmpdir(), 'winpilot-vault-'));
     await expect(new ProviderVault(root, cipher).configure('openai', 'short')).rejects.toThrow('קצר');
   });
+
+  it('stores Devin organization metadata inside the encrypted payload', async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'winpilot-vault-'));
+    const vault = new ProviderVault(root, cipher);
+    await vault.configure('devin', 'cog_secret_key', 'org-123');
+    expect(await vault.get('devin')).toBe('cog_secret_key');
+    expect(await vault.getDevinOrganizationId()).toBe('org-123');
+    expect(await readFile(path.join(root, 'provider-secrets.json'), 'utf8')).not.toContain('org-123');
+  });
 });
