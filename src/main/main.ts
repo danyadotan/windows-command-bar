@@ -41,7 +41,7 @@ app.whenReady().then(() => {
     const route = routeTask(request, localRuntime.status().configured);
     if (route.tier === 'privacy-hold') throw new Error(route.reason);
     const response = planCommand(request);
-    if (response.kind === 'plan' || route.tier === 'on-device' || !['openai', 'anthropic'].includes(request.provider)) {
+    if (response.kind === 'plan' || route.tier === 'on-device' || !['openai', 'anthropic', 'zai'].includes(request.provider)) {
       await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: response.kind === 'plan' ? 'deterministic-planner' : route.model, tier: 'on-device', inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: true });
       return response;
     }
