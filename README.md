@@ -13,6 +13,7 @@ MVP for a Windows command bar that combines AI text assistance with safe local a
 - Local memory library for links, notes, inspiration and screenshots copied to the clipboard
 - Automatic local collections and tags, plus library search
 - Encrypted credential vault and connection status for OpenAI, Anthropic, Z.ai and Devin
+- Live OpenAI Responses and Anthropic Messages adapters with provider-reported token usage
 - Encrypted form profiles, reusable text/search/signature snippets, and unfinished-form reminders with safe return links
 - Privacy-aware model routing, local/cloud token accounting, and encrypted searchable activity memory
 
@@ -30,6 +31,8 @@ npm start
 Only loopback endpoints are accepted. If private data is detected while no local runtime is configured, WinPilot places the task on privacy hold instead of sending it to a cloud provider.
 
 See [the capability validation report](docs/VALIDATION.md) for evidence, primary sources, and production gaps.
+
+OpenAI requests set `store: false`. Override default text models with `WINPILOT_OPENAI_MODEL` and `WINPILOT_ANTHROPIC_MODEL`. Z.ai and Devin remain connection-vault entries pending dedicated adapters.
 
 ## Run
 

@@ -118,6 +118,13 @@ export interface RuntimeSummary {
   events: UsageEvent[];
 }
 
+export interface ProviderGeneration {
+  text: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
 export interface LocalRuntimeStatus {
   configured: boolean;
   endpoint?: string;
