@@ -11,6 +11,7 @@ import { RuntimeMonitor } from './runtime-monitor';
 import { LocalRuntime } from './local-runtime';
 import { ProviderGateway } from './provider-client';
 import { DevinClient } from './devin-client';
+import { WindowsHelper } from './windows-helper';
 
 let window: BrowserWindow | null = null;
 
@@ -38,6 +39,7 @@ app.whenReady().then(() => {
   const localRuntime = new LocalRuntime();
   const providers = new ProviderGateway();
   const devin = new DevinClient();
+  const windows = new WindowsHelper();
   ipcMain.handle('command:plan', async (_event, request: CommandRequest) => {
     const started = Date.now();
     const route = routeTask(request, localRuntime.status().configured);
@@ -78,6 +80,9 @@ app.whenReady().then(() => {
     if (!apiKey || !organizationId) throw new Error('יש להגדיר טוקן ו־Organization ID עבור Devin');
     return devin.createSession(apiKey, organizationId, request.prompt);
   });
+  ipcMain.handle('windows:search-apps', (_event, query: string) => windows.searchApps(query));
+  ipcMain.handle('windows:install-app', (_event, request: { packageId: string; confirmed: boolean }) => windows.installApp(request.packageId, request.confirmed));
+  ipcMain.handle('windows:scan-updates', () => windows.scanUpdates());
   const notifiedDrafts = new Set<string>();
   setInterval(async () => {
     for (const draft of await forms.due()) {

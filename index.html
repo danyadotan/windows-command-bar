@@ -3,7 +3,7 @@
   <head><meta charset="UTF-8" /><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>WinPilot</title></head>
   <body>
     <main class="shell">
-      <header><div class="brand">W</div><div><h1>WinPilot</h1><p>עוזר חכם למחשב שלך</p></div><button id="forms-button" class="header-action">טפסים וסניפטים</button><span class="shortcut">Alt + Space</span></header>
+      <header><div class="brand">W</div><div><h1>WinPilot</h1><p>עוזר חכם למחשב שלך</p></div><button id="windows-button" class="header-action">כלי Windows</button><button id="forms-button" class="header-action">טפסים וסניפטים</button><span class="shortcut">Alt + Space</span></header>
       <section class="command-card">
         <div class="input-row"><span class="spark">✦</span><textarea id="prompt" rows="2" autofocus placeholder="מה תרצה לעשות? למשל: סדר את תיקיית ההורדות"></textarea><button id="go" aria-label="שליחה">↵</button></div>
         <div class="toolbar">
@@ -41,6 +41,13 @@
         <form method="dialog" class="dialog-head"><div><h2>ניטור ויעילות</h2><p>נתוני השימוש והזיכרון נשמרים מוצפנים ורק במכשיר.</p></div><button value="cancel" aria-label="סגירה">×</button></form>
         <div id="local-runtime-status" class="local-runtime-status"></div>
         <div id="runtime-metrics" class="runtime-metrics"></div><div id="runtime-events" class="runtime-events"></div>
+      </dialog>
+      <dialog id="windows-dialog">
+        <form method="dialog" class="dialog-head"><div><h2>כלי Windows</h2><p>חיפוש וסריקה הם קריאה בלבד. התקנה דורשת אישור נוסף.</p></div><button value="cancel" aria-label="סגירה">×</button></form>
+        <section class="windows-tool"><h3>חיפוש ב־winget</h3><div><input id="winget-query" placeholder="שם אפליקציה" /><button id="winget-search">חיפוש</button></div></section>
+        <section class="windows-tool"><h3>התקנה לפי Package ID מדויק</h3><div><input id="winget-id" placeholder="למשל Microsoft.PowerToys" /><button id="winget-install">הכנת התקנה</button></div></section>
+        <section class="windows-tool"><h3>Windows Update</h3><button id="update-scan">סריקת עדכונים בלבד</button></section>
+        <div id="windows-warning" class="windows-warning"></div><pre id="windows-output" class="windows-output">טרם הורצה פעולה</pre>
       </dialog>
       <footer><span><i></i> פעולות רגישות תמיד דורשות אישור</span><button id="runtime-button">ניטור ויעילות</button><span>Esc לסגירה</span></footer>
     </main>

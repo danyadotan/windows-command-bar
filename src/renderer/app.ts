@@ -19,6 +19,9 @@ const runtimeDialog = document.querySelector<HTMLDialogElement>('#runtime-dialog
 const runtimeMetrics = document.querySelector<HTMLElement>('#runtime-metrics')!;
 const runtimeEvents = document.querySelector<HTMLElement>('#runtime-events')!;
 const localRuntimeStatus = document.querySelector<HTMLElement>('#local-runtime-status')!;
+const windowsDialog = document.querySelector<HTMLDialogElement>('#windows-dialog')!;
+const windowsOutput = document.querySelector<HTMLElement>('#windows-output')!;
+const windowsWarning = document.querySelector<HTMLElement>('#windows-warning')!;
 
 function render(response: CommandResponse) {
   result.hidden = false;
@@ -144,6 +147,25 @@ document.querySelector('#save-screenshot')!.addEventListener('click', async () =
 });
 librarySearch.addEventListener('input', () => showLibrary(savedItems));
 document.querySelector('#provider-settings')!.addEventListener('click', () => void showProviderSettings());
+document.querySelector('#windows-button')!.addEventListener('click', () => windowsDialog.showModal());
+document.querySelector('#winget-search')!.addEventListener('click', async () => {
+  windowsWarning.textContent = ''; windowsOutput.textContent = 'מחפש…';
+  try { const result = await window.winpilot.searchWindowsApps(document.querySelector<HTMLInputElement>('#winget-query')!.value); windowsOutput.textContent = result.output; }
+  catch (error) { windowsOutput.textContent = error instanceof Error ? error.message : 'החיפוש נכשל'; }
+});
+document.querySelector('#update-scan')!.addEventListener('click', async () => {
+  windowsWarning.textContent = ''; windowsOutput.textContent = 'סורק עדכונים…';
+  try { const result = await window.winpilot.scanWindowsUpdates(); windowsOutput.textContent = result.output; }
+  catch (error) { windowsOutput.textContent = error instanceof Error ? error.message : 'הסריקה נכשלה'; }
+});
+document.querySelector<HTMLButtonElement>('#winget-install')!.addEventListener('click', async event => {
+  const button = event.currentTarget; const packageId = document.querySelector<HTMLInputElement>('#winget-id')!.value.trim();
+  if (button.dataset.armed !== packageId) { button.dataset.armed = packageId; button.textContent = 'אישור והתקנה'; windowsWarning.textContent = `הפעולה תתקין את ${packageId || 'החבילה'} ותאשר את תנאי המקור והחבילה.`; return; }
+  button.disabled = true; windowsOutput.textContent = 'מתקין…';
+  try { const result = await window.winpilot.installWindowsApp(packageId, true); windowsOutput.textContent = result.output; }
+  catch (error) { windowsOutput.textContent = error instanceof Error ? error.message : 'ההתקנה נכשלה'; }
+  finally { button.disabled = false; button.textContent = 'הכנת התקנה'; delete button.dataset.armed; }
+});
 document.querySelector('#runtime-button')!.addEventListener('click', async () => {
   const [summary, local] = await Promise.all([window.winpilot.runtimeSummary(), window.winpilot.localRuntimeStatus()]);
   localRuntimeStatus.textContent = `${local.configured ? '● מחובר' : '○ לא מחובר'} · ${local.transport} · ${local.message}${local.model ? ` · ${local.model}` : ''}`;

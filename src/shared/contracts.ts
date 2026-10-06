@@ -61,6 +61,12 @@ export interface DevinSession {
   status: string;
 }
 
+export interface WindowsToolResult {
+  action: 'winget-search' | 'winget-install' | 'update-scan';
+  output: string;
+  exitCode: number;
+}
+
 export interface FormProfile {
   id: string;
   label: string;
