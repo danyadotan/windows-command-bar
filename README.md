@@ -32,7 +32,7 @@ Only loopback endpoints are accepted. If private data is detected while no local
 
 See [the capability validation report](docs/VALIDATION.md) for evidence, primary sources, and production gaps.
 
-OpenAI requests set `store: false`. Override default text models with `WINPILOT_OPENAI_MODEL`, `WINPILOT_ANTHROPIC_MODEL`, and `WINPILOT_ZAI_MODEL`. Devin remains a connection-vault entry pending an explicitly approved asynchronous session flow.
+OpenAI requests set `store: false`. Override default text models with `WINPILOT_OPENAI_MODEL`, `WINPILOT_ANTHROPIC_MODEL`, and `WINPILOT_ZAI_MODEL`. Devin uses API v3 organization sessions and requires a second, explicit confirmation before session creation because it can consume paid agent capacity.
 
 ## Run
 

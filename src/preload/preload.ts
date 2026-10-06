@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { CommandRequest, CommandResponse, ConfigureProviderRequest, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem } from '../shared/contracts';
+import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem } from '../shared/contracts';
 
 contextBridge.exposeInMainWorld('winpilot', {
   plan: (request: CommandRequest): Promise<CommandResponse> => ipcRenderer.invoke('command:plan', request),
@@ -16,5 +16,6 @@ contextBridge.exposeInMainWorld('winpilot', {
   openForm: (url: string): Promise<void> => ipcRenderer.invoke('forms:open', url),
   runtimeSummary: (): Promise<RuntimeSummary> => ipcRenderer.invoke('runtime:summary'),
   routePreview: (request: CommandRequest): Promise<RoutingDecision> => ipcRenderer.invoke('runtime:route-preview', request),
-  localRuntimeStatus: (): Promise<LocalRuntimeStatus> => ipcRenderer.invoke('runtime:local-status')
+  localRuntimeStatus: (): Promise<LocalRuntimeStatus> => ipcRenderer.invoke('runtime:local-status'),
+  createDevinSession: (prompt: string, confirmed: boolean): Promise<DevinSession> => ipcRenderer.invoke('devin:create-session', { prompt, confirmed })
 });
