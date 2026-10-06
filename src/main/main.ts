@@ -16,6 +16,8 @@ import { FileOrganizer } from './file-organizer';
 
 let window: BrowserWindow | null = null;
 
+if (process.platform === 'win32') app.setAppUserModelId('io.dynamicbridge.winpilot');
+
 function createWindow() {
   window = new BrowserWindow({
     width: 780, height: 650, minWidth: 620, minHeight: 520,
