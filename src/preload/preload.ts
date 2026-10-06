@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem, WindowsToolResult } from '../shared/contracts';
+import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FileOrganizationPlan, FileOrganizationResult, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem, WindowsToolResult } from '../shared/contracts';
 
 contextBridge.exposeInMainWorld('winpilot', {
   plan: (request: CommandRequest): Promise<CommandResponse> => ipcRenderer.invoke('command:plan', request),
@@ -20,5 +20,8 @@ contextBridge.exposeInMainWorld('winpilot', {
   createDevinSession: (prompt: string, confirmed: boolean): Promise<DevinSession> => ipcRenderer.invoke('devin:create-session', { prompt, confirmed }),
   searchWindowsApps: (query: string): Promise<WindowsToolResult> => ipcRenderer.invoke('windows:search-apps', query),
   installWindowsApp: (packageId: string, confirmed: boolean): Promise<WindowsToolResult> => ipcRenderer.invoke('windows:install-app', { packageId, confirmed }),
-  scanWindowsUpdates: (): Promise<WindowsToolResult> => ipcRenderer.invoke('windows:scan-updates')
+  scanWindowsUpdates: (): Promise<WindowsToolResult> => ipcRenderer.invoke('windows:scan-updates'),
+  previewFileOrganization: (): Promise<FileOrganizationPlan> => ipcRenderer.invoke('files:preview-organize'),
+  executeFileOrganization: (planId: string, confirmed: boolean): Promise<FileOrganizationResult> => ipcRenderer.invoke('files:execute-organize', { planId, confirmed }),
+  undoFileOrganization: (confirmed: boolean): Promise<FileOrganizationResult> => ipcRenderer.invoke('files:undo-organize', confirmed)
 });

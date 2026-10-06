@@ -22,6 +22,7 @@ const localRuntimeStatus = document.querySelector<HTMLElement>('#local-runtime-s
 const windowsDialog = document.querySelector<HTMLDialogElement>('#windows-dialog')!;
 const windowsOutput = document.querySelector<HTMLElement>('#windows-output')!;
 const windowsWarning = document.querySelector<HTMLElement>('#windows-warning')!;
+let filePlanId: string | undefined;
 
 function render(response: CommandResponse) {
   result.hidden = false;
@@ -165,6 +166,30 @@ document.querySelector<HTMLButtonElement>('#winget-install')!.addEventListener('
   try { const result = await window.winpilot.installWindowsApp(packageId, true); windowsOutput.textContent = result.output; }
   catch (error) { windowsOutput.textContent = error instanceof Error ? error.message : 'ההתקנה נכשלה'; }
   finally { button.disabled = false; button.textContent = 'הכנת התקנה'; delete button.dataset.armed; }
+});
+document.querySelector('#files-preview')!.addEventListener('click', async () => {
+  windowsWarning.textContent = ''; windowsOutput.textContent = 'סורק את Downloads ללא שינויים…';
+  try {
+    const plan = await window.winpilot.previewFileOrganization(); filePlanId = plan.id;
+    windowsOutput.textContent = plan.moves.length ? plan.moves.map(move => `${move.source}  →  ${move.destination}  (${Math.ceil(move.size / 1024)} KB)`).join('\n') : 'לא נמצאו קבצים לארגון';
+    document.querySelector<HTMLButtonElement>('#files-execute')!.disabled = !plan.moves.length;
+    windowsWarning.textContent = plan.moves.length ? `${plan.moves.length} קבצים מוכנים להעברה. התוכנית תפוג בעוד 15 דקות.` : '';
+  } catch (error) { windowsOutput.textContent = error instanceof Error ? error.message : 'יצירת preview נכשלה'; }
+});
+document.querySelector<HTMLButtonElement>('#files-execute')!.addEventListener('click', async event => {
+  const button = event.currentTarget; if (!filePlanId) return;
+  button.disabled = true; windowsOutput.textContent = 'מעביר קבצים…';
+  try { const result = await window.winpilot.executeFileOrganization(filePlanId, true); windowsOutput.textContent = `הועברו: ${result.moved}\nדולגו: ${result.skipped}${result.errors.length ? `\nשגיאות:\n${result.errors.join('\n')}` : ''}`; filePlanId = undefined; }
+  catch (error) { windowsOutput.textContent = error instanceof Error ? error.message : 'הארגון נכשל'; }
+  finally { button.disabled = true; windowsWarning.textContent = ''; }
+});
+document.querySelector<HTMLButtonElement>('#files-undo')!.addEventListener('click', async event => {
+  const button = event.currentTarget;
+  if (button.dataset.armed !== 'true') { button.dataset.armed = 'true'; button.textContent = 'אישור Undo'; windowsWarning.textContent = 'הפעולה תחזיר את הקבצים מהמיון האחרון למיקומם המקורי, ללא דריסה.'; return; }
+  button.disabled = true;
+  try { const result = await window.winpilot.undoFileOrganization(true); windowsOutput.textContent = `הוחזרו: ${result.moved}\nדולגו: ${result.skipped}${result.errors.length ? `\nשגיאות:\n${result.errors.join('\n')}` : ''}`; }
+  catch (error) { windowsOutput.textContent = error instanceof Error ? error.message : 'Undo נכשל'; }
+  finally { button.disabled = false; button.textContent = 'Undo אחרון'; delete button.dataset.armed; windowsWarning.textContent = ''; }
 });
 document.querySelector('#runtime-button')!.addEventListener('click', async () => {
   const [summary, local] = await Promise.all([window.winpilot.runtimeSummary(), window.winpilot.localRuntimeStatus()]);
