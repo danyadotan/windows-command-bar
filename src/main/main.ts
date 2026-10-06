@@ -9,6 +9,7 @@ import { FormAssistantStore } from './form-assistant';
 import { routeTask } from './model-router';
 import { RuntimeMonitor } from './runtime-monitor';
 import { LocalRuntime } from './local-runtime';
+import { ProviderGateway } from './provider-client';
 
 let window: BrowserWindow | null = null;
 
@@ -34,13 +35,26 @@ app.whenReady().then(() => {
   const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
   const monitor = new RuntimeMonitor(path.join(app.getPath('userData'), 'secure'), cipher);
   const localRuntime = new LocalRuntime();
+  const providers = new ProviderGateway();
   ipcMain.handle('command:plan', async (_event, request: CommandRequest) => {
     const started = Date.now();
     const route = routeTask(request, localRuntime.status().configured);
     if (route.tier === 'privacy-hold') throw new Error(route.reason);
     const response = planCommand(request);
-    await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: route.model, tier: route.tier, inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: true });
-    return response;
+    if (response.kind === 'plan' || route.tier === 'on-device' || !['openai', 'anthropic'].includes(request.provider)) {
+      await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: response.kind === 'plan' ? 'deterministic-planner' : route.model, tier: 'on-device', inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: true });
+      return response;
+    }
+    const apiKey = await vault.get(request.provider);
+    if (!apiKey) throw new Error(`יש לחבר את ${request.provider} במסך חיבור הספקים`);
+    try {
+      const generated = await providers.generate(request.provider, apiKey, request.text);
+      await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: generated.model, tier: route.tier, inputTokens: generated.inputTokens, outputTokens: generated.outputTokens, latencyMs: Date.now() - started, success: true });
+      return { kind: 'answer' as const, message: generated.text, actions: [] };
+    } catch (error) {
+      await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: route.model, tier: route.tier, inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: false });
+      throw error;
+    }
   });
   ipcMain.handle('library:list', () => library.list());
   ipcMain.handle('library:save', (_event, request: SaveItemRequest) => library.save(request));
