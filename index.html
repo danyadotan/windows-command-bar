@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head><meta charset="UTF-8" /><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>WinPilot</title></head>
+  <body>
+    <main class="shell">
+      <header><div class="brand">W</div><div><h1>WinPilot</h1><p>עוזר חכם למחשב שלך</p></div><button id="forms-button" class="header-action">טפסים וסניפטים</button><span class="shortcut">Alt + Space</span></header>
+      <section class="command-card">
+        <div class="input-row"><span class="spark">✦</span><textarea id="prompt" rows="2" autofocus placeholder="מה תרצה לעשות? למשל: סדר את תיקיית ההורדות"></textarea><button id="go" aria-label="שליחה">↵</button></div>
+        <div class="toolbar">
+          <select id="provider" aria-label="ספק AI"><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option><option value="zai">Z.ai</option><option value="devin">Devin</option></select><button id="provider-settings" class="link-button">חיבור ספקים</button>
+          <label><input id="preview" type="checkbox" checked /> תצוגה מקדימה לפעולות מערכת</label>
+        </div>
+      </section>
+      <section id="suggestions" class="suggestions">
+        <button data-prompt="עזור לי לנסח מחדש את הטקסט שהעתקתי"><b>✎</b><span>שיפור טקסט<small>ניסוח, קיצור ותרגום</small></span></button>
+        <button data-prompt="בדוק אילו עדכוני Windows זמינים"><b>↻</b><span>עדכוני מערכת<small>בדיקה לפני התקנה</small></span></button>
+        <button data-prompt="סדר את תיקיית ההורדות לפי סוג ותאריך"><b>⌁</b><span>סידור קבצים<small>תוכנית לפני ביצוע</small></span></button>
+        <button data-prompt="המלץ על אפליקציה שתשפר את העבודה שלי"><b>＋</b><span>התקנת אפליקציה<small>דרך winget ובאישור</small></span></button>
+      </section>
+      <section class="save-card">
+        <div class="section-title"><div><h2>לשמור לרגע הנכון</h2><p>קישור, רעיון או השראה — WinPilot יסדר אותם בהקשר המתאים</p></div><button id="save-screenshot">▣ צילום מהלוח</button></div>
+        <div class="save-row"><input id="save-input" placeholder="הדביקו קישור, טקסט או רעיון…" /><button id="save-item">שמירה</button></div>
+        <div id="save-status" class="save-status" role="status"></div>
+        <div class="library-head"><strong>נשמר לאחרונה</strong><input id="library-search" placeholder="חיפוש בספרייה" /></div>
+        <div id="library" class="library"></div>
+      </section>
+      <section id="result" class="result" hidden></section>
+      <dialog id="settings-dialog">
+        <form method="dialog" class="dialog-head"><div><h2>חיבור סוכני AI</h2><p>המפתחות מוצפנים באמצעות Windows ואינם מוצגים שוב.</p></div><button value="cancel" aria-label="סגירה">×</button></form>
+        <div id="provider-list" class="provider-list"></div>
+      </dialog>
+      <dialog id="forms-dialog" class="forms-dialog">
+        <form method="dialog" class="dialog-head"><div><h2>טפסים וסניפטים</h2><p>פרטים אישיים נשמרים מוצפנים מקומית ולעולם לא נשלחים לסוכן.</p></div><button value="cancel" aria-label="סגירה">×</button></form>
+        <div class="form-tabs"><button data-form-tab="profile" class="active">פרופיל</button><button data-form-tab="snippet">סניפט</button><button data-form-tab="draft">טופס להמשך</button></div>
+        <form id="profile-form" class="form-panel"><input name="label" placeholder="שם הפרופיל, למשל עבודה" required /><input name="fullName" placeholder="שם מלא" /><input name="email" type="email" placeholder="אימייל" required /><input name="phone" placeholder="טלפון" /><textarea name="signature" placeholder="חתימת מייל"></textarea><button>שמירת פרופיל מוצפן</button></form>
+        <form id="snippet-form" class="form-panel" hidden><input name="trigger" placeholder="קיצור, למשל /כתובת" required /><input name="label" placeholder="שם הסניפט" required /><textarea name="value" placeholder="הטקסט או החיפוש החוזר" required></textarea><select name="kind"><option value="text">טקסט</option><option value="signature">חתימה</option><option value="search">חיפוש חוזר</option></select><button>שמירת סניפט</button></form>
+        <form id="draft-form" class="form-panel" hidden><input name="title" placeholder="שם הטופס" required /><input name="url" type="url" placeholder="https://…" required /><label>תזכורת <input name="reminderAt" type="datetime-local" /></label><button>שמירה להמשך</button></form>
+        <div id="forms-status" class="save-status"></div><div id="form-items" class="form-items"></div>
+      </dialog>
+      <dialog id="runtime-dialog">
+        <form method="dialog" class="dialog-head"><div><h2>ניטור ויעילות</h2><p>נתוני השימוש והזיכרון נשמרים מוצפנים ורק במכשיר.</p></div><button value="cancel" aria-label="סגירה">×</button></form>
+        <div id="local-runtime-status" class="local-runtime-status"></div>
+        <div id="runtime-metrics" class="runtime-metrics"></div><div id="runtime-events" class="runtime-events"></div>
+      </dialog>
+      <footer><span><i></i> פעולות רגישות תמיד דורשות אישור</span><button id="runtime-button">ניטור ויעילות</button><span>Esc לסגירה</span></footer>
+    </main>
+    <script type="module" src="/src/renderer/app.ts"></script>
+  </body>
+</html>
