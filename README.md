@@ -16,6 +16,7 @@ MVP for a Windows command bar that combines AI text assistance with safe local a
 - Live OpenAI Responses, Anthropic Messages, and Z.ai GLM adapters with provider-reported token usage
 - Encrypted form profiles, reusable text/search/signature snippets, and unfinished-form reminders with safe return links
 - Privacy-aware model routing, local/cloud token accounting, and encrypted searchable activity memory
+- Windows Helper for read-only Update scans, safe winget search, and explicitly confirmed exact-package installs
 
 The on-device runtime is represented by a narrow adapter boundary and currently uses the built-in deterministic planner. Connecting Microsoft Foundry Local, Windows AI APIs, or a specific MCP server requires installing and configuring that runtime; the app does not silently fall back to uploading private content.
 
@@ -31,6 +32,8 @@ npm start
 Only loopback endpoints are accepted. If private data is detected while no local runtime is configured, WinPilot places the task on privacy hold instead of sending it to a cloud provider.
 
 See [the capability validation report](docs/VALIDATION.md) for evidence, primary sources, and production gaps.
+
+Windows Helper never invokes a shell: executable names and argument arrays are fixed separately. App installation accepts only a strict package ID, adds `--exact`, and requires a second confirmation click. Update scanning uses the built-in Windows Update COM searcher and does not install or reboot.
 
 OpenAI requests set `store: false`. Override default text models with `WINPILOT_OPENAI_MODEL`, `WINPILOT_ANTHROPIC_MODEL`, and `WINPILOT_ZAI_MODEL`. Devin uses API v3 organization sessions and requires a second, explicit confirmation before session creation because it can consume paid agent capacity.
 

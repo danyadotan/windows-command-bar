@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem } from '../shared/contracts';
+import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem, WindowsToolResult } from '../shared/contracts';
 
 contextBridge.exposeInMainWorld('winpilot', {
   plan: (request: CommandRequest): Promise<CommandResponse> => ipcRenderer.invoke('command:plan', request),
@@ -17,5 +17,8 @@ contextBridge.exposeInMainWorld('winpilot', {
   runtimeSummary: (): Promise<RuntimeSummary> => ipcRenderer.invoke('runtime:summary'),
   routePreview: (request: CommandRequest): Promise<RoutingDecision> => ipcRenderer.invoke('runtime:route-preview', request),
   localRuntimeStatus: (): Promise<LocalRuntimeStatus> => ipcRenderer.invoke('runtime:local-status'),
-  createDevinSession: (prompt: string, confirmed: boolean): Promise<DevinSession> => ipcRenderer.invoke('devin:create-session', { prompt, confirmed })
+  createDevinSession: (prompt: string, confirmed: boolean): Promise<DevinSession> => ipcRenderer.invoke('devin:create-session', { prompt, confirmed }),
+  searchWindowsApps: (query: string): Promise<WindowsToolResult> => ipcRenderer.invoke('windows:search-apps', query),
+  installWindowsApp: (packageId: string, confirmed: boolean): Promise<WindowsToolResult> => ipcRenderer.invoke('windows:install-app', { packageId, confirmed }),
+  scanWindowsUpdates: (): Promise<WindowsToolResult> => ipcRenderer.invoke('windows:scan-updates')
 });
