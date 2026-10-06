@@ -1,0 +1,73 @@
+import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, Notification, safeStorage, shell } from 'electron';
+import path from 'node:path';
+import { planCommand } from './planner';
+import type { CommandRequest } from '../shared/contracts';
+import type { ConfigureProviderRequest, FormDraft, FormProfile, FormSnippet, ProviderId, SaveItemRequest } from '../shared/contracts';
+import { LocalLibrary } from './library';
+import { ProviderVault } from './provider-vault';
+import { FormAssistantStore } from './form-assistant';
+import { routeTask } from './model-router';
+import { RuntimeMonitor } from './runtime-monitor';
+import { LocalRuntime } from './local-runtime';
+
+let window: BrowserWindow | null = null;
+
+function createWindow() {
+  window = new BrowserWindow({
+    width: 780, height: 650, minWidth: 620, minHeight: 520,
+    frame: false, transparent: true, resizable: true, show: false,
+    webPreferences: { preload: path.join(__dirname, '../preload/preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true }
+  });
+  const devUrl = process.env.VITE_DEV_SERVER_URL;
+  if (devUrl) void window.loadURL(devUrl); else void window.loadFile(path.join(__dirname, '../index.html'));
+  window.once('ready-to-show', () => window?.show());
+}
+
+app.whenReady().then(() => {
+  const library = new LocalLibrary(path.join(app.getPath('userData'), 'saved'));
+  const cipher = {
+    available: () => safeStorage.isEncryptionAvailable(),
+    encrypt: (value: string) => safeStorage.encryptString(value),
+    decrypt: (value: Buffer) => safeStorage.decryptString(value)
+  };
+  const vault = new ProviderVault(path.join(app.getPath('userData'), 'secure'), cipher);
+  const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
+  const monitor = new RuntimeMonitor(path.join(app.getPath('userData'), 'secure'), cipher);
+  const localRuntime = new LocalRuntime();
+  ipcMain.handle('command:plan', async (_event, request: CommandRequest) => {
+    const started = Date.now();
+    const route = routeTask(request, localRuntime.status().configured);
+    if (route.tier === 'privacy-hold') throw new Error(route.reason);
+    const response = planCommand(request);
+    await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: route.model, tier: route.tier, inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: true });
+    return response;
+  });
+  ipcMain.handle('library:list', () => library.list());
+  ipcMain.handle('library:save', (_event, request: SaveItemRequest) => library.save(request));
+  ipcMain.handle('library:save-screenshot', () => library.saveScreenshot(clipboard.readImage().toPNG()));
+  ipcMain.handle('provider:statuses', () => vault.statuses());
+  ipcMain.handle('provider:configure', (_event, request: ConfigureProviderRequest) => vault.configure(request.id, request.apiKey));
+  ipcMain.handle('provider:remove', (_event, id: ProviderId) => vault.remove(id));
+  ipcMain.handle('forms:get', () => forms.get());
+  ipcMain.handle('forms:save-profile', (_event, profile: Omit<FormProfile, 'id'> & { id?: string }) => forms.saveProfile(profile));
+  ipcMain.handle('forms:save-snippet', (_event, snippet: Omit<FormSnippet, 'id'>) => forms.saveSnippet(snippet));
+  ipcMain.handle('forms:save-draft', (_event, draft: Omit<FormDraft, 'id' | 'createdAt'>) => forms.saveDraft(draft));
+  ipcMain.handle('forms:open', (_event, url: string) => { const parsed = new URL(url); if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('קישור לא בטוח'); return shell.openExternal(parsed.toString()); });
+  ipcMain.handle('runtime:summary', () => monitor.summary());
+  ipcMain.handle('runtime:route-preview', (_event, request: CommandRequest) => routeTask(request, localRuntime.status().configured));
+  ipcMain.handle('runtime:local-status', () => localRuntime.status());
+  const notifiedDrafts = new Set<string>();
+  setInterval(async () => {
+    for (const draft of await forms.due()) {
+      if (notifiedDrafts.has(draft.id)) continue;
+      notifiedDrafts.add(draft.id);
+      const notice = new Notification({ title: 'טופס ממתין להשלמה', body: draft.title });
+      notice.on('click', () => void shell.openExternal(draft.url)); notice.show();
+    }
+  }, 60_000).unref();
+  createWindow();
+  globalShortcut.register('Alt+Space', () => window?.isVisible() ? window.hide() : window?.show());
+});
+
+app.on('will-quit', () => globalShortcut.unregisterAll());
+app.on('window-all-closed', () => app.quit());
