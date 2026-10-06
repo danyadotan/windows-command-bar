@@ -17,6 +17,7 @@ MVP for a Windows command bar that combines AI text assistance with safe local a
 - Encrypted form profiles, reusable text/search/signature snippets, and unfinished-form reminders with safe return links
 - Privacy-aware model routing, local/cloud token accounting, and encrypted searchable activity memory
 - Windows Helper for read-only Update scans, safe winget search, and explicitly confirmed exact-package installs
+- Downloads organizer with a 15-minute preview plan, change detection, collision protection, encrypted action journal, and explicit undo
 
 The on-device runtime is represented by a narrow adapter boundary and currently uses the built-in deterministic planner. Connecting Microsoft Foundry Local, Windows AI APIs, or a specific MCP server requires installing and configuring that runtime; the app does not silently fall back to uploading private content.
 

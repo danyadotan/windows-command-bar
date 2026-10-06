@@ -1,4 +1,4 @@
-import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem, WindowsToolResult } from '../shared/contracts';
+import type { CommandRequest, CommandResponse, ConfigureProviderRequest, DevinSession, FileOrganizationPlan, FileOrganizationResult, FormAssistantData, FormDraft, FormProfile, FormSnippet, LocalRuntimeStatus, ProviderId, ProviderStatus, RoutingDecision, RuntimeSummary, SaveItemRequest, SavedItem, WindowsToolResult } from '../shared/contracts';
 declare global { interface Window { winpilot: {
   plan(request: CommandRequest): Promise<CommandResponse>;
   listSaved(): Promise<SavedItem[]>;
@@ -19,5 +19,8 @@ declare global { interface Window { winpilot: {
   searchWindowsApps(query: string): Promise<WindowsToolResult>;
   installWindowsApp(packageId: string, confirmed: boolean): Promise<WindowsToolResult>;
   scanWindowsUpdates(): Promise<WindowsToolResult>;
+  previewFileOrganization(): Promise<FileOrganizationPlan>;
+  executeFileOrganization(planId: string, confirmed: boolean): Promise<FileOrganizationResult>;
+  undoFileOrganization(confirmed: boolean): Promise<FileOrganizationResult>;
 } } }
 export {};

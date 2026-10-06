@@ -12,6 +12,7 @@ import { LocalRuntime } from './local-runtime';
 import { ProviderGateway } from './provider-client';
 import { DevinClient } from './devin-client';
 import { WindowsHelper } from './windows-helper';
+import { FileOrganizer } from './file-organizer';
 
 let window: BrowserWindow | null = null;
 
@@ -40,6 +41,7 @@ app.whenReady().then(() => {
   const providers = new ProviderGateway();
   const devin = new DevinClient();
   const windows = new WindowsHelper();
+  const organizer = new FileOrganizer(app.getPath('downloads'), path.join(app.getPath('userData'), 'secure'), cipher);
   ipcMain.handle('command:plan', async (_event, request: CommandRequest) => {
     const started = Date.now();
     const route = routeTask(request, localRuntime.status().configured);
@@ -83,6 +85,9 @@ app.whenReady().then(() => {
   ipcMain.handle('windows:search-apps', (_event, query: string) => windows.searchApps(query));
   ipcMain.handle('windows:install-app', (_event, request: { packageId: string; confirmed: boolean }) => windows.installApp(request.packageId, request.confirmed));
   ipcMain.handle('windows:scan-updates', () => windows.scanUpdates());
+  ipcMain.handle('files:preview-organize', () => organizer.preview());
+  ipcMain.handle('files:execute-organize', (_event, request: { planId: string; confirmed: boolean }) => organizer.execute(request.planId, request.confirmed));
+  ipcMain.handle('files:undo-organize', (_event, confirmed: boolean) => organizer.undoLast(confirmed));
   const notifiedDrafts = new Set<string>();
   setInterval(async () => {
     for (const draft of await forms.due()) {

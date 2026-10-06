@@ -67,6 +67,26 @@ export interface WindowsToolResult {
   exitCode: number;
 }
 
+export interface FileMovePreview {
+  source: string;
+  destination: string;
+  category: string;
+  size: number;
+}
+
+export interface FileOrganizationPlan {
+  id: string;
+  expiresAt: string;
+  moves: FileMovePreview[];
+}
+
+export interface FileOrganizationResult {
+  actionId: string;
+  moved: number;
+  skipped: number;
+  errors: string[];
+}
+
 export interface FormProfile {
   id: string;
   label: string;
