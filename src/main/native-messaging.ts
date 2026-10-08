@@ -17,6 +17,11 @@ export function nativeOriginFromArgs(args: string[]): string | undefined {
   return value && /^chrome-extension:\/\/[a-p]{32}\/$/.test(value) ? value : undefined;
 }
 
+export function nativeOriginForLaunch(args: string[], switchValue: string, launchedByBrowser: boolean): string | undefined {
+  const candidate = switchValue || nativeOriginFromArgs(args) || (launchedByBrowser ? ALLOWED_EXTENSION_ORIGIN : undefined);
+  return candidate === ALLOWED_EXTENSION_ORIGIN ? candidate : undefined;
+}
+
 export function encodeNativeMessage(value: unknown): Buffer {
   const body = Buffer.from(JSON.stringify(value), 'utf8');
   if (body.length > MAX_MESSAGE_BYTES) throw new Error('Native message is too large');

@@ -13,7 +13,7 @@ frame.writeUInt32LE(body.length, 0); body.copy(frame, 4);
 // executable is launched directly. Chrome and Edge still use the standard
 // positional origin; this explicit switch only makes the packaged smoke test
 // exercise the same host transport deterministically.
-const child = spawn(path.resolve(executable), [`--winpilot-native-origin=${origin}`], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+const child = spawn(path.resolve(executable), [`--winpilot-native-origin=${origin}`, '--parent-window=0'], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
 const stdout = [];
 const stderr = [];
 const timeout = setTimeout(() => { child.kill(); throw new Error('Packaged native host timed out'); }, 20_000);

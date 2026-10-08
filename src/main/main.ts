@@ -13,10 +13,14 @@ import { ProviderGateway } from './provider-client';
 import { DevinClient } from './devin-client';
 import { WindowsHelper } from './windows-helper';
 import { FileOrganizer } from './file-organizer';
-import { installNativeMessagingHost, nativeOriginFromArgs, serveNativeMessaging } from './native-messaging';
+import { installNativeMessagingHost, nativeOriginForLaunch, serveNativeMessaging } from './native-messaging';
 
 let window: BrowserWindow | null = null;
-const nativeMessagingOrigin = nativeOriginFromArgs(process.argv);
+const nativeMessagingOrigin = nativeOriginForLaunch(
+  process.argv,
+  app.commandLine.getSwitchValue('winpilot-native-origin'),
+  process.platform === 'win32' && app.commandLine.hasSwitch('parent-window')
+);
 
 if (process.platform === 'win32') app.setAppUserModelId('io.dynamicbridge.winpilot');
 
