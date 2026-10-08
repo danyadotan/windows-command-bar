@@ -38,11 +38,12 @@ npm run build
 
 The suite covers action approval boundaries, encrypted-at-rest storage, URL protocol checks, private-data routing, local generation and loopback enforcement, redirect blocking, and local/cloud token accounting. GitHub Actions repeats the suite and packages the NSIS installer on `windows-latest`.
 
+Windows CI also launches the packaged `WinPilot.exe` as a Native Messaging host, sends a real length-prefixed ping frame over stdin, verifies the framed response from stdout, and checks that the extension ZIP is produced. The NSIS uninstaller removes only WinPilot's two per-user browser registry keys and generated host-manifest files.
+
 ## Known gaps before production
 
 1. Install and exercise a real Foundry Local runtime on Windows hardware (CPU/GPU/NPU), recording model download consent, latency, memory, and power use.
 2. Implement a full MCP client with capability negotiation and tool-level allowlists.
 3. Add Authenticode signing and verify update integrity before public distribution.
-4. Add uninstall cleanup for the per-user Native Messaging registry entries and manifest.
-5. Publish the extension through the Microsoft Edge Add-ons review process before presenting it as a production installation.
-6. Execute an online dependency audit in CI; the current managed workspace blocked npm's advisory endpoint.
+4. Publish the extension through the Microsoft Edge Add-ons review process before presenting it as a production installation.
+5. Execute an online dependency audit in CI; the current managed workspace blocked npm's advisory endpoint.
