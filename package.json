@@ -41,6 +41,10 @@
       {
         "from": "native-host/bin/WinPilotNativeHost.exe",
         "to": "native-host/WinPilotNativeHost.exe"
+      },
+      {
+        "from": "native-host/io.dynamicbridge.winpilot.json",
+        "to": "native-host/io.dynamicbridge.winpilot.json"
       }
     ],
     "win": {
