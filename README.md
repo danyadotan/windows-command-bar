@@ -15,7 +15,7 @@ MVP for a Windows command bar that combines AI text assistance with safe local a
 - Encrypted credential vault and connection status for OpenAI, Anthropic, Z.ai and Devin
 - Live OpenAI Responses, Anthropic Messages, and Z.ai GLM adapters with provider-reported token usage
 - Encrypted form profiles, reusable text/search/signature snippets, and unfinished-form reminders with safe return links
-- Privacy-aware model routing, local/cloud token accounting, and encrypted searchable activity memory
+- Privacy-aware model routing that selects fast or reasoning models in the actual provider request, local/cloud token accounting, and encrypted searchable activity memory
 - Windows Helper for read-only Update scans, safe winget search, and explicitly confirmed exact-package installs
 - Downloads organizer with a 15-minute preview plan, change detection, collision protection, encrypted action journal, and explicit undo
 
@@ -36,7 +36,7 @@ See [the capability validation report](docs/VALIDATION.md) for evidence, primary
 
 Windows Helper never invokes a shell: executable names and argument arrays are fixed separately. App installation accepts only a strict package ID, adds `--exact`, and requires a second confirmation click. Update scanning uses the built-in Windows Update COM searcher and does not install or reboot.
 
-OpenAI requests set `store: false`. Override default text models with `WINPILOT_OPENAI_MODEL`, `WINPILOT_ANTHROPIC_MODEL`, and `WINPILOT_ZAI_MODEL`. Devin uses API v3 organization sessions and requires a second, explicit confirmation before session creation because it can consume paid agent capacity.
+OpenAI requests set `store: false`. Current defaults are GPT-6 Luna/Astra, Claude Haiku 5.5/Fable 5.1, and GLM-5.3-Flash/GLM-5.3 for fast/reasoning work. Override both tiers with `WINPILOT_OPENAI_MODEL`, `WINPILOT_ANTHROPIC_MODEL`, or `WINPILOT_ZAI_MODEL`; override one tier with the corresponding `_FAST_MODEL` or `_REASONING_MODEL` variable. Devin uses API v3 organization sessions and requires a second, explicit confirmation before session creation because it can consume paid agent capacity.
 
 ## Run
 

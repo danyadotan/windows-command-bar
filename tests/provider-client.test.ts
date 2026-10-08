@@ -6,7 +6,7 @@ describe('ProviderGateway', () => {
     const request = vi.fn(async () => new Response(JSON.stringify({ model: 'gpt-test', output: [{ content: [{ type: 'output_text', text: 'שלום' }] }], usage: { input_tokens: 11, output_tokens: 4 } }), { status: 200 }));
     const result = await new ProviderGateway(request as typeof fetch).generate('openai', 'secret-key', 'hello');
     expect(result).toMatchObject({ text: 'שלום', inputTokens: 11, outputTokens: 4 });
-    expect(JSON.parse(String(request.mock.calls[0][1]?.body))).toMatchObject({ store: false, input: 'hello' });
+    expect(JSON.parse(String(request.mock.calls[0][1]?.body))).toMatchObject({ model: 'gpt-6-luna', store: false, input: 'hello' });
     expect((request.mock.calls[0][1]?.headers as Record<string, string>).authorization).toBe('Bearer secret-key');
   });
 
@@ -28,5 +28,11 @@ describe('ProviderGateway', () => {
     expect(result).toMatchObject({ text: 'בוצע', model: 'glm-test', inputTokens: 9, outputTokens: 3 });
     expect(request.mock.calls[0][0]).toBe('https://api.z.ai/api/paas/v4/chat/completions');
     expect((request.mock.calls[0][1]?.headers as Record<string, string>).authorization).toBe('Bearer zai-secret');
+  });
+
+  it('passes the reasoning-tier model to the provider request', async () => {
+    const request = vi.fn(async () => new Response(JSON.stringify({ model: 'gpt-6-astra', output_text: 'analysis', usage: {} }), { status: 200 }));
+    await new ProviderGateway(request as typeof fetch).generate('openai', 'secret-key', 'analyze', 'cloud-reasoning');
+    expect(JSON.parse(String(request.mock.calls[0][1]?.body))).toMatchObject({ model: 'gpt-6-astra' });
   });
 });

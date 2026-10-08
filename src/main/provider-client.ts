@@ -1,4 +1,5 @@
-import type { ProviderGeneration, ProviderId } from '../shared/contracts';
+import type { CloudExecutionTier, ProviderGeneration, ProviderId } from '../shared/contracts';
+import { selectCloudModel } from './model-selection';
 
 type FetchLike = typeof fetch;
 
@@ -20,15 +21,15 @@ async function apiError(response: Response): Promise<Error> {
 export class ProviderGateway {
   constructor(private readonly request: FetchLike = fetch) {}
 
-  async generate(provider: ProviderId, apiKey: string, prompt: string): Promise<ProviderGeneration> {
-    if (provider === 'openai') return this.openAI(apiKey, prompt);
-    if (provider === 'anthropic') return this.anthropic(apiKey, prompt);
-    if (provider === 'zai') return this.zai(apiKey, prompt);
+  async generate(provider: ProviderId, apiKey: string, prompt: string, tier: CloudExecutionTier = 'cloud-fast'): Promise<ProviderGeneration> {
+    const model = selectCloudModel(provider, tier);
+    if (provider === 'openai') return this.openAI(apiKey, prompt, model);
+    if (provider === 'anthropic') return this.anthropic(apiKey, prompt, model);
+    if (provider === 'zai') return this.zai(apiKey, prompt, model);
     throw new Error(`${provider} עדיין אינו מחובר ליצירת טקסט`);
   }
 
-  private async openAI(apiKey: string, prompt: string): Promise<ProviderGeneration> {
-    const model = process.env.WINPILOT_OPENAI_MODEL || 'gpt-5-mini';
+  private async openAI(apiKey: string, prompt: string, model: string): Promise<ProviderGeneration> {
     const response = await this.request('https://api.openai.com/v1/responses', {
       method: 'POST', headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify({ model, input: prompt, store: false })
@@ -41,8 +42,7 @@ export class ProviderGateway {
     return { text, model: String(payload.model ?? model), inputTokens: usage.input_tokens ?? 0, outputTokens: usage.output_tokens ?? 0 };
   }
 
-  private async anthropic(apiKey: string, prompt: string): Promise<ProviderGeneration> {
-    const model = process.env.WINPILOT_ANTHROPIC_MODEL || 'claude-sonnet-4-6';
+  private async anthropic(apiKey: string, prompt: string, model: string): Promise<ProviderGeneration> {
     const response = await this.request('https://api.anthropic.com/v1/messages', {
       method: 'POST', headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({ model, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
@@ -54,8 +54,7 @@ export class ProviderGateway {
     return { text, model: payload.model ?? model, inputTokens: payload.usage?.input_tokens ?? 0, outputTokens: payload.usage?.output_tokens ?? 0 };
   }
 
-  private async zai(apiKey: string, prompt: string): Promise<ProviderGeneration> {
-    const model = process.env.WINPILOT_ZAI_MODEL || 'glm-4.6';
+  private async zai(apiKey: string, prompt: string, model: string): Promise<ProviderGeneration> {
     const response = await this.request('https://api.z.ai/api/paas/v4/chat/completions', {
       method: 'POST', headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }] })

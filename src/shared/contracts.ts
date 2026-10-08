@@ -120,6 +120,7 @@ export interface FormAssistantData {
 
 export type TaskComplexity = 'simple' | 'medium' | 'complex';
 export type ExecutionTier = 'on-device' | 'cloud-fast' | 'cloud-reasoning' | 'privacy-hold';
+export type CloudExecutionTier = Extract<ExecutionTier, 'cloud-fast' | 'cloud-reasoning'>;
 
 export interface RoutingDecision {
   tier: ExecutionTier;
