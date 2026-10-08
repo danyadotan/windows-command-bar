@@ -1,0 +1,9 @@
+{
+  "name": "io.dynamicbridge.winpilot",
+  "description": "WinPilot encrypted form profile bridge",
+  "path": "WinPilotNativeHost.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://dbkcdkaciiebdadcnmbmeljjfalbobkh/"
+  ]
+}
