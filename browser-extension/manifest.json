@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "WinPilot Form Assistant",
+  "version": "0.1.0",
+  "description": "Private, click-to-fill form assistance and unfinished-form reminders.",
+  "permissions": ["storage", "alarms", "notifications", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "action": {
+    "default_title": "WinPilot Form Assistant",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["field-detector.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -27,3 +27,12 @@ jobs:
           name: WinPilot-Windows-unsigned
           path: release/*.exe
           if-no-files-found: error
+      - name: Package browser extension
+        shell: pwsh
+        run: Compress-Archive -Path browser-extension/* -DestinationPath WinPilot-Form-Assistant.zip
+      - name: Upload browser extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinPilot-Browser-Extension
+          path: WinPilot-Form-Assistant.zip
+          if-no-files-found: error

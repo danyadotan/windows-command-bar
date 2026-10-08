@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="popup.css"><title>WinPilot</title></head>
+<body>
+  <header><strong>WinPilot</strong><small>Form Assistant</small></header>
+  <p class="privacy">הפרטים נשמרים בזיכרון הסשן בלבד ונמחקים בסגירת הדפדפן.</p>
+  <label>שם מלא<input id="fullName" autocomplete="name"></label>
+  <label>אימייל אישי<input id="email" type="email" autocomplete="email"></label>
+  <label>אימייל עבודה<input id="workEmail" type="email"></label>
+  <label>טלפון<input id="phone" type="tel" autocomplete="tel"></label>
+  <label>חתימה<textarea id="signature" rows="2"></textarea></label>
+  <button id="save">שמירה לסשן</button>
+  <button id="fill" class="primary">מילוי שדות ריקים בדף</button>
+  <hr>
+  <label>סניפט זמני<textarea id="snippet" rows="2" placeholder="טקסט חוזר או שאילתת חיפוש"></textarea></label>
+  <button id="insert">הוספה לשדה הפעיל</button>
+  <button id="remind">תזכורת לטופס בעוד 15 דקות</button>
+  <p id="status" role="status"></p>
+  <script src="popup.js"></script>
+</body>
+</html>
