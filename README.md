@@ -19,7 +19,7 @@ MVP for a Windows command bar that combines AI text assistance with safe local a
 - Windows Helper for read-only Update scans, safe winget search, and explicitly confirmed exact-package installs
 - Downloads organizer with a 15-minute preview plan, change detection, collision protection, encrypted action journal, and explicit undo
 
-The on-device runtime is represented by a narrow adapter boundary and currently uses the built-in deterministic planner. Connecting Microsoft Foundry Local, Windows AI APIs, or a specific MCP server requires installing and configuring that runtime; the app does not silently fall back to uploading private content.
+The on-device path uses the built-in deterministic planner for supported Windows actions and an OpenAI-compatible loopback adapter for local text generation. Connecting Microsoft Foundry Local or an MCP-to-OpenAI-compatible bridge requires installing and configuring that runtime; the app does not silently fall back to uploading private content.
 
 Configure a local OpenAI-compatible SDK or MCP bridge when starting the app:
 
@@ -30,7 +30,7 @@ $env:WINPILOT_LOCAL_AI_TRANSPORT = "mcp" # optional; defaults to Microsoft local
 npm start
 ```
 
-Only loopback endpoints are accepted. If private data is detected while no local runtime is configured, WinPilot places the task on privacy hold instead of sending it to a cloud provider.
+Only loopback endpoints are accepted, redirects are blocked, and local generation times out after 45 seconds. If private data is detected while no local runtime is configured—or if local generation fails—WinPilot keeps the task local and reports the error instead of falling back to a cloud provider.
 
 See [the capability validation report](docs/VALIDATION.md) for evidence, primary sources, and production gaps.
 

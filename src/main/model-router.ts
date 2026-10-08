@@ -8,14 +8,14 @@ export function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil(text.length / 3.2));
 }
 
-export function routeTask(request: CommandRequest, localModelAvailable = true): RoutingDecision {
+export function routeTask(request: CommandRequest, localModelAvailable = true, localModel = 'phi-4-mini-local'): RoutingDecision {
   const text = request.text.trim();
   const containsPrivateData = PRIVATE_PATTERN.test(text);
   const complexity: TaskComplexity = COMPLEX_PATTERN.test(text) || text.length > 600 ? 'complex' : MEDIUM_PATTERN.test(text) || text.length > 180 ? 'medium' : 'simple';
   const estimatedInputTokens = estimateTokens(text);
-  if (containsPrivateData && localModelAvailable) return { tier: 'on-device', model: 'phi-4-mini-local', complexity, reason: 'זוהה מידע פרטי; העיבוד נשאר במכשיר', containsPrivateData, estimatedInputTokens };
+  if (containsPrivateData && localModelAvailable) return { tier: 'on-device', model: localModel, complexity, reason: 'זוהה מידע פרטי; העיבוד נשאר במכשיר', containsPrivateData, estimatedInputTokens };
   if (containsPrivateData) return { tier: 'privacy-hold', model: 'none', complexity, reason: 'המשימה נעצרה: מידע פרטי זוהה אך runtime מקומי אינו מוגדר', containsPrivateData, estimatedInputTokens };
-  if (complexity === 'simple' && localModelAvailable) return { tier: 'on-device', model: 'phi-4-mini-local', complexity, reason: 'משימה קצרה שמתאימה למודל חסכוני מקומי', containsPrivateData, estimatedInputTokens };
+  if (complexity === 'simple' && localModelAvailable) return { tier: 'on-device', model: localModel, complexity, reason: 'משימה קצרה שמתאימה למודל חסכוני מקומי', containsPrivateData, estimatedInputTokens };
   if (complexity === 'complex') return { tier: 'cloud-reasoning', model: `${request.provider}:reasoning`, complexity, reason: 'נדרש תכנון רב־שלבי והסקה עמוקה', containsPrivateData, estimatedInputTokens };
   return { tier: 'cloud-fast', model: `${request.provider}:fast`, complexity, reason: 'איזון בין מהירות לאיכות', containsPrivateData, estimatedInputTokens };
 }

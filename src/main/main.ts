@@ -46,11 +46,26 @@ app.whenReady().then(() => {
   const organizer = new FileOrganizer(app.getPath('downloads'), path.join(app.getPath('userData'), 'secure'), cipher);
   ipcMain.handle('command:plan', async (_event, request: CommandRequest) => {
     const started = Date.now();
-    const route = routeTask(request, localRuntime.status().configured);
+    const localStatus = localRuntime.status();
+    const route = routeTask(request, localStatus.configured, localStatus.model);
     if (route.tier === 'privacy-hold') throw new Error(route.reason);
     const response = planCommand(request);
-    if (response.kind === 'plan' || route.tier === 'on-device' || !['openai', 'anthropic', 'zai'].includes(request.provider)) {
-      await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: response.kind === 'plan' ? 'deterministic-planner' : route.model, tier: 'on-device', inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: true });
+    if (response.kind === 'plan') {
+      await monitor.record({ taskLabel: request.text.slice(0, 120), provider: 'local', model: 'deterministic-planner', tier: 'on-device', inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: true });
+      return response;
+    }
+    if (route.tier === 'on-device') {
+      try {
+        const generated = await localRuntime.generate(request.text);
+        await monitor.record({ taskLabel: request.text.slice(0, 120), provider: 'local', model: generated.model, tier: 'on-device', inputTokens: generated.inputTokens, outputTokens: generated.outputTokens, latencyMs: Date.now() - started, success: true });
+        return { kind: 'answer' as const, message: generated.text, actions: [] };
+      } catch (error) {
+        await monitor.record({ taskLabel: request.text.slice(0, 120), provider: 'local', model: route.model, tier: 'on-device', inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: false });
+        throw error;
+      }
+    }
+    if (!['openai', 'anthropic', 'zai'].includes(request.provider)) {
+      await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: 'deterministic-planner', tier: 'on-device', inputTokens: route.estimatedInputTokens, latencyMs: Date.now() - started, success: true });
       return response;
     }
     const apiKey = await vault.get(request.provider);
@@ -76,7 +91,7 @@ app.whenReady().then(() => {
   ipcMain.handle('forms:save-draft', (_event, draft: Omit<FormDraft, 'id' | 'createdAt'>) => forms.saveDraft(draft));
   ipcMain.handle('forms:open', (_event, url: string) => { const parsed = new URL(url); if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('קישור לא בטוח'); return shell.openExternal(parsed.toString()); });
   ipcMain.handle('runtime:summary', () => monitor.summary());
-  ipcMain.handle('runtime:route-preview', (_event, request: CommandRequest) => routeTask(request, localRuntime.status().configured));
+  ipcMain.handle('runtime:route-preview', (_event, request: CommandRequest) => { const status = localRuntime.status(); return routeTask(request, status.configured, status.model); });
   ipcMain.handle('runtime:local-status', () => localRuntime.status());
   ipcMain.handle('devin:create-session', async (_event, request: { prompt: string; confirmed: boolean }) => {
     if (!request.confirmed) throw new Error('נדרש אישור מפורש להפעלת Devin');
