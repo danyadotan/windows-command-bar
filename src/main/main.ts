@@ -1,5 +1,4 @@
 import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, Notification, safeStorage, shell } from 'electron';
-import { appendFileSync } from 'node:fs';
 import path from 'node:path';
 import { planCommand } from './planner';
 import type { CommandRequest } from '../shared/contracts';
@@ -22,12 +21,6 @@ const nativeMessagingOrigin = nativeOriginForLaunch(
   app.commandLine.getSwitchValue('winpilot-native-origin'),
   process.platform === 'win32' && app.commandLine.hasSwitch('parent-window')
 );
-const nativeDebugFile = process.env.WINPILOT_NATIVE_DEBUG_FILE;
-function nativeDebug(event: string) {
-  if (!nativeDebugFile) return;
-  try { appendFileSync(nativeDebugFile, `${JSON.stringify({ event, argv: process.argv, nativeMessagingOrigin })}\n`, 'utf8'); } catch { /* CI-only diagnostics must not affect startup. */ }
-}
-nativeDebug('module-loaded');
 
 if (process.platform === 'win32') app.setAppUserModelId('io.dynamicbridge.winpilot');
 
@@ -43,7 +36,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  nativeDebug('app-ready');
   const cipher = {
     available: () => safeStorage.isEncryptionAvailable(),
     encrypt: (value: string) => safeStorage.encryptString(value),
@@ -52,11 +44,7 @@ app.whenReady().then(() => {
   const vault = new ProviderVault(path.join(app.getPath('userData'), 'secure'), cipher);
   const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
   if (nativeMessagingOrigin) {
-    nativeDebug('native-host-start');
-    void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout)
-      .then(() => nativeDebug('native-host-complete'))
-      .catch(error => nativeDebug(`native-host-error:${error instanceof Error ? error.message : 'unknown'}`))
-      .finally(() => app.quit());
+    void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout).finally(() => app.quit());
     return;
   }
   if (process.platform === 'win32' && app.isPackaged) {
