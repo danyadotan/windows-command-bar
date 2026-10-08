@@ -71,7 +71,7 @@ app.whenReady().then(() => {
     const apiKey = await vault.get(request.provider);
     if (!apiKey) throw new Error(`יש לחבר את ${request.provider} במסך חיבור הספקים`);
     try {
-      const generated = await providers.generate(request.provider, apiKey, request.text);
+      const generated = await providers.generate(request.provider, apiKey, request.text, route.tier);
       await monitor.record({ taskLabel: request.text.slice(0, 120), provider: request.provider, model: generated.model, tier: route.tier, inputTokens: generated.inputTokens, outputTokens: generated.outputTokens, latencyMs: Date.now() - started, success: true });
       return { kind: 'answer' as const, message: generated.text, actions: [] };
     } catch (error) {
