@@ -4,7 +4,7 @@ header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
 header strong { font-size: 19px; } header small, .privacy { color: #a7adbd; }
 .privacy { font-size: 12px; line-height: 1.45; }
 label { display: grid; gap: 4px; margin: 9px 0; font-size: 12px; color: #c7ccda; }
-input, textarea { box-sizing: border-box; width: 100%; border: 1px solid #34394a; border-radius: 8px; padding: 8px 9px; color: #fff; background: #1c1f29; font: inherit; }
+input, textarea, select { box-sizing: border-box; width: 100%; border: 1px solid #34394a; border-radius: 8px; padding: 8px 9px; color: #fff; background: #1c1f29; font: inherit; }
 button { width: 100%; margin-top: 7px; border: 1px solid #3e4559; border-radius: 9px; padding: 9px; color: #fff; background: #252936; cursor: pointer; }
 button.primary { background: #6758e8; border-color: #7b6df0; font-weight: 700; }
 hr { border: 0; border-top: 1px solid #2f3341; margin: 15px 0; }
