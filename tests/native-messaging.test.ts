@@ -16,6 +16,8 @@ describe('native messaging bridge', () => {
 
   it('allows only the fixed extension origin argument', () => {
     expect(nativeOriginFromArgs(['WinPilot.exe', ALLOWED_EXTENSION_ORIGIN])).toBe(ALLOWED_EXTENSION_ORIGIN);
+    expect(nativeOriginFromArgs(['WinPilot.exe', `--winpilot-native-origin=${ALLOWED_EXTENSION_ORIGIN}`])).toBe(ALLOWED_EXTENSION_ORIGIN);
+    expect(nativeOriginFromArgs(['WinPilot.exe', '--winpilot-native-origin=https://example.com'])).toBeUndefined();
     expect(nativeOriginFromArgs(['WinPilot.exe', 'https://example.com'])).toBeUndefined();
     expect(ALLOWED_EXTENSION_ORIGIN).toBe(`chrome-extension://${EXTENSION_ID}/`);
   });

@@ -9,9 +9,12 @@ export const NATIVE_HOST_NAME = 'io.dynamicbridge.winpilot';
 export const EXTENSION_ID = 'dbkcdkaciiebdadcnmbmeljjfalbobkh';
 export const ALLOWED_EXTENSION_ORIGIN = `chrome-extension://${EXTENSION_ID}/`;
 const MAX_MESSAGE_BYTES = 1024 * 1024;
+const NATIVE_ORIGIN_SWITCH = '--winpilot-native-origin=';
 
 export function nativeOriginFromArgs(args: string[]): string | undefined {
-  return args.find(value => /^chrome-extension:\/\/[a-p]{32}\/$/.test(value));
+  const value = args.find(argument => argument.startsWith(NATIVE_ORIGIN_SWITCH))?.slice(NATIVE_ORIGIN_SWITCH.length)
+    ?? args.find(argument => /^chrome-extension:\/\/[a-p]{32}\/$/.test(argument));
+  return value && /^chrome-extension:\/\/[a-p]{32}\/$/.test(value) ? value : undefined;
 }
 
 export function encodeNativeMessage(value: unknown): Buffer {
