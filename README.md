@@ -15,6 +15,7 @@ MVP for a Windows command bar that combines AI text assistance with safe local a
 - Encrypted credential vault and connection status for OpenAI, Anthropic, Z.ai and Devin
 - Live OpenAI Responses, Anthropic Messages, and Z.ai GLM adapters with provider-reported token usage
 - Encrypted form profiles, reusable text/search/signature snippets, and unfinished-form reminders with safe return links
+- Optional Edge/Chrome companion extension with local field detection, explicit click-to-fill, session-only profiles/snippets, and 15-minute return reminders
 - Privacy-aware model routing that selects fast or reasoning models in the actual provider request, local/cloud token accounting, and encrypted searchable activity memory
 - Windows Helper for read-only Update scans, safe winget search, and explicitly confirmed exact-package installs
 - Downloads organizer with a 15-minute preview plan, change detection, collision protection, encrypted action journal, and explicit undo
@@ -33,6 +34,8 @@ npm start
 Only loopback endpoints are accepted, redirects are blocked, and local generation times out after 45 seconds. If private data is detected while no local runtime is configured—or if local generation fails—WinPilot keeps the task local and reports the error instead of falling back to a cloud provider.
 
 See [the capability validation report](docs/VALIDATION.md) for evidence, primary sources, and production gaps.
+
+The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It does not yet sync the encrypted Electron profile; sensitive fill data remains in browser session memory and is removed when the browser exits.
 
 Windows Helper never invokes a shell: executable names and argument arrays are fixed separately. App installation accepts only a strict package ID, adds `--exact`, and requires a second confirmation click. Update scanning uses the built-in Windows Update COM searcher and does not install or reboot.
 
