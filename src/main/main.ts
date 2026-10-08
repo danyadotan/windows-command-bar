@@ -16,6 +16,7 @@ import { FileOrganizer } from './file-organizer';
 import { installNativeMessagingHost, nativeOriginFromArgs, serveNativeMessaging } from './native-messaging';
 
 let window: BrowserWindow | null = null;
+const nativeMessagingOrigin = nativeOriginFromArgs(process.argv);
 
 if (process.platform === 'win32') app.setAppUserModelId('io.dynamicbridge.winpilot');
 
@@ -38,9 +39,8 @@ app.whenReady().then(() => {
   };
   const vault = new ProviderVault(path.join(app.getPath('userData'), 'secure'), cipher);
   const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
-  const nativeOrigin = nativeOriginFromArgs(process.argv);
-  if (nativeOrigin) {
-    void serveNativeMessaging(forms, nativeOrigin, process.stdin, process.stdout).finally(() => app.quit());
+  if (nativeMessagingOrigin) {
+    void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout).finally(() => app.quit());
     return;
   }
   if (process.platform === 'win32' && app.isPackaged) void installNativeMessagingHost(app.getPath('userData'), process.execPath).catch(() => undefined);
@@ -126,4 +126,4 @@ app.whenReady().then(() => {
 });
 
 app.on('will-quit', () => globalShortcut.unregisterAll());
-app.on('window-all-closed', () => app.quit());
+app.on('window-all-closed', () => { if (!nativeMessagingOrigin) app.quit(); });
