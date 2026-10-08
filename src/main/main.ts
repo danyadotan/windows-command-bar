@@ -13,9 +13,14 @@ import { ProviderGateway } from './provider-client';
 import { DevinClient } from './devin-client';
 import { WindowsHelper } from './windows-helper';
 import { FileOrganizer } from './file-organizer';
-import { installNativeMessagingHost, nativeOriginFromArgs, serveNativeMessaging } from './native-messaging';
+import { installNativeMessagingHost, nativeOriginForLaunch, serveNativeMessaging } from './native-messaging';
 
 let window: BrowserWindow | null = null;
+const nativeMessagingOrigin = nativeOriginForLaunch(
+  process.argv,
+  app.commandLine.getSwitchValue('winpilot-native-origin'),
+  process.platform === 'win32' && app.commandLine.hasSwitch('parent-window')
+);
 
 if (process.platform === 'win32') app.setAppUserModelId('io.dynamicbridge.winpilot');
 
@@ -38,12 +43,14 @@ app.whenReady().then(() => {
   };
   const vault = new ProviderVault(path.join(app.getPath('userData'), 'secure'), cipher);
   const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
-  const nativeOrigin = nativeOriginFromArgs(process.argv);
-  if (nativeOrigin) {
-    void serveNativeMessaging(forms, nativeOrigin, process.stdin, process.stdout).finally(() => app.quit());
+  if (nativeMessagingOrigin) {
+    void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout).finally(() => app.quit());
     return;
   }
-  if (process.platform === 'win32' && app.isPackaged) void installNativeMessagingHost(app.getPath('userData'), process.execPath).catch(() => undefined);
+  if (process.platform === 'win32' && app.isPackaged) {
+    const nativeHost = path.join(process.resourcesPath, 'native-host', 'WinPilotNativeHost.exe');
+    void installNativeMessagingHost(app.getPath('userData'), nativeHost).catch(() => undefined);
+  }
   const library = new LocalLibrary(path.join(app.getPath('userData'), 'saved'));
   const monitor = new RuntimeMonitor(path.join(app.getPath('userData'), 'secure'), cipher);
   const localRuntime = new LocalRuntime();
@@ -126,4 +133,4 @@ app.whenReady().then(() => {
 });
 
 app.on('will-quit', () => globalShortcut.unregisterAll());
-app.on('window-all-closed', () => app.quit());
+app.on('window-all-closed', () => { if (!nativeMessagingOrigin) app.quit(); });

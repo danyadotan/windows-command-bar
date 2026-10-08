@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ALLOWED_EXTENSION_ORIGIN, encodeNativeMessage, EXTENSION_ID, handleNativeMessage, installNativeMessagingHost, NativeMessageDecoder, nativeOriginFromArgs } from '../src/main/native-messaging';
+import { ALLOWED_EXTENSION_ORIGIN, encodeNativeMessage, EXTENSION_ID, handleNativeMessage, installNativeMessagingHost, NativeMessageDecoder, nativeOriginForLaunch, nativeOriginFromArgs } from '../src/main/native-messaging';
 
 const temporaryDirectories: string[] = [];
 afterEach(async () => { await Promise.all(temporaryDirectories.splice(0).map(directory => rm(directory, { recursive: true, force: true }))); });
@@ -16,7 +16,12 @@ describe('native messaging bridge', () => {
 
   it('allows only the fixed extension origin argument', () => {
     expect(nativeOriginFromArgs(['WinPilot.exe', ALLOWED_EXTENSION_ORIGIN])).toBe(ALLOWED_EXTENSION_ORIGIN);
+    expect(nativeOriginFromArgs(['WinPilot.exe', `--winpilot-native-origin=${ALLOWED_EXTENSION_ORIGIN}`])).toBe(ALLOWED_EXTENSION_ORIGIN);
+    expect(nativeOriginFromArgs(['WinPilot.exe', '--winpilot-native-origin=https://example.com'])).toBeUndefined();
     expect(nativeOriginFromArgs(['WinPilot.exe', 'https://example.com'])).toBeUndefined();
+    expect(nativeOriginForLaunch(['WinPilot.exe'], ALLOWED_EXTENSION_ORIGIN, false)).toBe(ALLOWED_EXTENSION_ORIGIN);
+    expect(nativeOriginForLaunch(['WinPilot.exe'], '', true)).toBe(ALLOWED_EXTENSION_ORIGIN);
+    expect(nativeOriginForLaunch(['WinPilot.exe'], 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/', true)).toBeUndefined();
     expect(ALLOWED_EXTENSION_ORIGIN).toBe(`chrome-extension://${EXTENSION_ID}/`);
   });
 
