@@ -11,4 +11,11 @@ describe('native host source', () => {
     expect(source).toContain('{ "snippets", snippets }');
     expect(source).not.toContain('{ "drafts",');
   });
+
+  it('packages a relative-path manifest for installer-time registration', async () => {
+    const manifest = JSON.parse(await readFile(path.join(process.cwd(), 'native-host', 'io.dynamicbridge.winpilot.json'), 'utf8'));
+    expect(manifest.name).toBe('io.dynamicbridge.winpilot');
+    expect(manifest.path).toBe('WinPilotNativeHost.exe');
+    expect(manifest.allowed_origins).toEqual(['chrome-extension://dbkcdkaciiebdadcnmbmeljjfalbobkh/']);
+  });
 });
