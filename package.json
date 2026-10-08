@@ -28,6 +28,7 @@
   "build": {
     "appId": "io.dynamicbridge.winpilot",
     "productName": "WinPilot",
+    "afterPack": "scripts/after-pack.cjs",
     "asar": true,
     "directories": {
       "output": "release"

@@ -9,11 +9,8 @@ const body = Buffer.from(JSON.stringify({ type: 'ping' }), 'utf8');
 const frame = Buffer.alloc(body.length + 4);
 frame.writeUInt32LE(body.length, 0); body.copy(frame, 4);
 
-// A URL-shaped positional argument can be consumed by Chromium when an Electron
-// executable is launched directly. Chrome and Edge still use the standard
-// positional origin; this explicit switch only makes the packaged smoke test
-// exercise the same host transport deterministically.
-const child = spawn(path.resolve(executable), [`--winpilot-native-origin=${origin}`, '--parent-window=0'], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+// Match the arguments Chrome and Edge use for a service-worker native host.
+const child = spawn(path.resolve(executable), [origin, '--parent-window=0'], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
 const stdout = [];
 const stderr = [];
 const timeout = setTimeout(() => { child.kill(); throw new Error('Packaged native host timed out'); }, 20_000);

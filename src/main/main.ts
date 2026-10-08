@@ -47,7 +47,10 @@ app.whenReady().then(() => {
     void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout).finally(() => app.quit());
     return;
   }
-  if (process.platform === 'win32' && app.isPackaged) void installNativeMessagingHost(app.getPath('userData'), process.execPath).catch(() => undefined);
+  if (process.platform === 'win32' && app.isPackaged) {
+    const nativeHost = path.join(path.dirname(process.execPath), 'WinPilotNativeHost.exe');
+    void installNativeMessagingHost(app.getPath('userData'), nativeHost).catch(() => undefined);
+  }
   const library = new LocalLibrary(path.join(app.getPath('userData'), 'saved'));
   const monitor = new RuntimeMonitor(path.join(app.getPath('userData'), 'secure'), cipher);
   const localRuntime = new LocalRuntime();
