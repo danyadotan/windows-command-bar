@@ -13,6 +13,7 @@ import { ProviderGateway } from './provider-client';
 import { DevinClient } from './devin-client';
 import { WindowsHelper } from './windows-helper';
 import { FileOrganizer } from './file-organizer';
+import { installNativeMessagingHost, nativeOriginFromArgs, serveNativeMessaging } from './native-messaging';
 
 let window: BrowserWindow | null = null;
 
@@ -30,7 +31,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  const library = new LocalLibrary(path.join(app.getPath('userData'), 'saved'));
   const cipher = {
     available: () => safeStorage.isEncryptionAvailable(),
     encrypt: (value: string) => safeStorage.encryptString(value),
@@ -38,6 +38,13 @@ app.whenReady().then(() => {
   };
   const vault = new ProviderVault(path.join(app.getPath('userData'), 'secure'), cipher);
   const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
+  const nativeOrigin = nativeOriginFromArgs(process.argv);
+  if (nativeOrigin) {
+    void serveNativeMessaging(forms, nativeOrigin, process.stdin, process.stdout).finally(() => app.quit());
+    return;
+  }
+  if (process.platform === 'win32' && app.isPackaged) void installNativeMessagingHost(app.getPath('userData'), process.execPath).catch(() => undefined);
+  const library = new LocalLibrary(path.join(app.getPath('userData'), 'saved'));
   const monitor = new RuntimeMonitor(path.join(app.getPath('userData'), 'secure'), cipher);
   const localRuntime = new LocalRuntime();
   const providers = new ProviderGateway();

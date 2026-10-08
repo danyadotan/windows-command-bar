@@ -12,6 +12,7 @@ Validated on 2026-10-08 against primary documentation and automated tests.
 - Cloud routing changes the model sent to each provider: a lower-latency model for fast work and a stronger reasoning model for complex work. Every default can be overridden without a code change.
 - Windows Update scans, exact-package winget installs, and Downloads file moves are implemented behind scoped previews and explicit approval boundaries. Update installation and restart remain out of scope.
 - The optional browser companion detects a narrow allowlist of form-field types locally, fills empty fields only after a click, excludes password/hidden/file fields, and stores sensitive fill data in session memory rather than persistent extension storage.
+- The packaged desktop app registers a per-user Edge/Chrome Native Messaging host restricted to the extension's fixed ID. The bridge supports only ping and read-only profile/snippet retrieval; drafts and mutations are not exposed.
 
 ## External facts checked
 
@@ -42,6 +43,6 @@ The suite covers action approval boundaries, encrypted-at-rest storage, URL prot
 1. Install and exercise a real Foundry Local runtime on Windows hardware (CPU/GPU/NPU), recording model download consent, latency, memory, and power use.
 2. Implement a full MCP client with capability negotiation and tool-level allowlists.
 3. Add Authenticode signing and verify update integrity before public distribution.
-4. Pair the browser extension with the encrypted Electron profile through an authenticated native-messaging bridge before offering cross-app profile sync.
+4. Add uninstall cleanup for the per-user Native Messaging registry entries and manifest.
 5. Publish the extension through the Microsoft Edge Add-ons review process before presenting it as a production installation.
 6. Execute an online dependency audit in CI; the current managed workspace blocked npm's advisory endpoint.

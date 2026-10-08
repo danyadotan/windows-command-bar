@@ -35,7 +35,7 @@ Only loopback endpoints are accepted, redirects are blocked, and local generatio
 
 See [the capability validation report](docs/VALIDATION.md) for evidence, primary sources, and production gaps.
 
-The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It does not yet sync the encrypted Electron profile; sensitive fill data remains in browser session memory and is removed when the browser exits.
+The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It can read the encrypted Electron profile on demand through an extension-ID-restricted, read-only Native Messaging host; sensitive values remain in memory and are removed when the browser exits.
 
 Windows Helper never invokes a shell: executable names and argument arrays are fixed separately. App installation accepts only a strict package ID, adds `--exact`, and requires a second confirmation click. Update scanning uses the built-in Windows Update COM searcher and does not install or reboot.
 

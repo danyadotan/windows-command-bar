@@ -1,4 +1,13 @@
 const REMINDERS_KEY = 'formReminders';
+const NATIVE_HOST = 'io.dynamicbridge.winpilot';
+
+function nativeFormData() {
+  return new Promise(resolve => {
+    chrome.runtime.sendNativeMessage(NATIVE_HOST, { type: 'get-form-data' }, response => {
+      if (chrome.runtime.lastError || !response?.ok) resolve(null); else resolve(response);
+    });
+  });
+}
 
 function safeUrl(value) {
   try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.toString() : null; }
@@ -7,7 +16,15 @@ function safeUrl(value) {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'get-session-profile') {
-    chrome.storage.session.get('profile').then(({ profile }) => sendResponse({ profile: profile || null }));
+    chrome.storage.session.get('profile').then(async ({ profile }) => {
+      if (profile) { sendResponse({ profile, source: 'session' }); return; }
+      const native = await nativeFormData();
+      sendResponse({ profile: native?.profiles?.[0] || null, source: native ? 'winpilot' : 'none' });
+    });
+    return true;
+  }
+  if (message?.type === 'get-native-form-data') {
+    nativeFormData().then(data => sendResponse(data || { ok: false }));
     return true;
   }
   if (message?.type === 'schedule-reminder') {
