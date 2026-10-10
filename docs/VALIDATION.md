@@ -1,6 +1,6 @@
 # Capability validation
 
-Validated on 2026-10-08 against primary documentation and automated tests.
+Validated on 2026-10-10 against primary documentation and automated tests.
 
 ## Confirmed by current implementation
 
@@ -32,13 +32,16 @@ Run:
 
 ```bash
 npm ci
+npm audit --audit-level=moderate
 npm test
 npm run build
 ```
 
 The suite covers action approval boundaries, encrypted-at-rest storage, URL protocol checks, private-data routing, local generation and loopback enforcement, redirect blocking, and local/cloud token accounting. GitHub Actions repeats the suite and packages the NSIS installer on `windows-latest`.
 
-Windows CI also launches the packaged `WinPilot.exe` as a Native Messaging host, sends a real length-prefixed ping frame over stdin, verifies the framed response from stdout, and checks that the extension ZIP is produced. The NSIS uninstaller removes only WinPilot's two per-user browser registry keys and generated host-manifest files.
+Windows CI launches the packaged `WinPilotNativeHost.exe`, sends a real length-prefixed ping frame over stdin, verifies the framed response from stdout, and checks that the extension ZIP is produced. The NSIS installer registers the host for Chrome and Edge; a real uninstall removes WinPilot's per-user browser keys and generated host-manifest files.
+
+The full dependency tree passed `npm audit --audit-level=moderate` with zero reported vulnerabilities on 2026-10-10. CI reruns the audit for each pull request and push to `main`.
 
 ## Known gaps before production
 
@@ -46,4 +49,3 @@ Windows CI also launches the packaged `WinPilot.exe` as a Native Messaging host,
 2. Implement a full MCP client with capability negotiation and tool-level allowlists.
 3. Add Authenticode signing and verify update integrity before public distribution.
 4. Publish the extension through the Microsoft Edge Add-ons review process before presenting it as a production installation.
-5. Execute an online dependency audit in CI; the current managed workspace blocked npm's advisory endpoint.
