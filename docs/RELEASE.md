@@ -8,6 +8,7 @@ Run:
 
 ```powershell
 npm ci
+npm audit --audit-level=moderate
 npm test
 npm run package:win
 ```

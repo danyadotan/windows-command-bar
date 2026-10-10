@@ -95,7 +95,13 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('library:list', () => library.list());
   ipcMain.handle('library:save', (_event, request: SaveItemRequest) => library.save(request));
-  ipcMain.handle('library:save-screenshot', () => library.saveScreenshot(clipboard.readImage().toPNG()));
+  ipcMain.handle('library:save-screenshot', async () => {
+    const items = await clipboard.read();
+    const item = items.find(entry => entry.types.includes('image/png'));
+    if (!item) throw new Error('לא נמצאה תמונה בלוח');
+    const image = await item.getType('image/png');
+    return library.saveScreenshot(Buffer.from(await image.arrayBuffer()));
+  });
   ipcMain.handle('provider:statuses', () => vault.statuses());
   ipcMain.handle('provider:configure', (_event, request: ConfigureProviderRequest) => vault.configure(request.id, request.apiKey, request.organizationId));
   ipcMain.handle('provider:remove', (_event, id: ProviderId) => vault.remove(id));
