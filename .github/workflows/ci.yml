@@ -24,11 +24,28 @@ jobs:
       - run: npm run package:win
       - name: Smoke-test packaged native messaging host
         run: node scripts/native-host-smoke.cjs "release/win-unpacked/resources/native-host/WinPilotNativeHost.exe"
+      - name: Smoke-test installation and uninstall
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem release/WinPilot-Setup-*.exe)
+          if ($installers.Count -ne 1) { throw 'Expected exactly one installer' }
+          ./scripts/installer-smoke.ps1 -Installer $installers[0].FullName
+      - name: Record installer integrity evidence
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem release/WinPilot-Setup-*.exe)
+          $evidence = foreach ($file in $files) {
+            $sig = Get-AuthenticodeSignature -LiteralPath $file.FullName
+            [ordered]@{ file = $file.Name; sha256 = (Get-FileHash $file.FullName -Algorithm SHA256).Hash; signatureStatus = "$($sig.Status)"; commit = $env:GITHUB_SHA; run = $env:GITHUB_RUN_ID; channel = 'internal-test-only' }
+          }
+          ConvertTo-Json -InputObject @($evidence) -Depth 4 | Set-Content release/installer-evidence.json
       - name: Upload unsigned Windows installer
         uses: actions/upload-artifact@v4
         with:
           name: WinPilot-Windows-unsigned
-          path: release/*.exe
+          path: |
+            release/*.exe
+            release/installer-evidence.json
           if-no-files-found: error
       - name: Package browser extension
         shell: pwsh

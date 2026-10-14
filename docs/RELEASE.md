@@ -33,3 +33,17 @@ Get-AuthenticodeSignature .\release\WinPilot-Setup-*.exe | Format-List
 ```
 
 The status must be `Valid`, and the signer must match the expected publisher. Install and smoke-test the signed artifact on a clean Windows machine before public distribution.
+
+## Controlled beta gate
+
+See [BETA.md](BETA.md) for onboarding, access controls, validation, and the current readiness assessment. CI artifacts remain internal-test-only. A successful build or installer smoke test is not permission to distribute an unsigned binary to customers.
+
+After configuring an approved signing service, sign **all three** binaries (installer, packaged WinPilot.exe, and Native Messaging host), then fail closed:
+
+```powershell
+./scripts/verify-signatures.ps1 -Installer ./release/WinPilot-Setup-0.1.1-x64.exe -Application ./release/win-unpacked/WinPilot.exe -NativeHost ./release/win-unpacked/resources/native-host/WinPilotNativeHost.exe -PublisherThumbprint '<approved-certificate-thumbprint>'
+```
+
+The verifier requires valid signatures, the exact approved certificate, and timestamps. Run it on the final artifact; record the commit, SHA-256, certificate identity, and clean-machine test evidence. The thumbprint must come from the approved signing identity, not from the downloaded binary itself. This script does not configure signing or authorize publication.
+
+CI now also silently installs into a disposable user directory, verifies a visible first launch and installed host ping, and checks uninstall cleanup. Its JSON evidence records installer SHA-256 and observed signature status; checksums prove identity, not publisher trust. Run the broader manual checklist on clean Windows hardware before beta.
