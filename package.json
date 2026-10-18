@@ -1,6 +1,6 @@
 {
   "name": "winpilot-command-bar",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "A safety-first Windows command bar for AI and local tasks",
   "author": "Danya Dotan",
