@@ -1,0 +1,83 @@
+name: Inspect blocked Windows installer
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/inspect-installer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  defender:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download the exact blocked internal-test artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: WinPilot-Windows-unsigned
+          run-id: 39143697264
+          github-token: ${{ github.token }}
+          path: suspect
+      - name: Verify identity and scan without executing the installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path evidence -Force | Out-Null
+          $report = [ordered]@{
+            sourceRun = '39143697264'
+            sourceCommit = '4c853a9f710201eaeb0cfe349d228fc6fcfc0bdb'
+            expectedSha256 = '5E3378B76BBBAE976DB7D5204A080546B1051ACB2E600C6A10C5C242D8B27106'
+            status = 'not-scanned'
+            limitation = 'Defender scanning does not establish Chrome Safe Browsing clearance or release readiness.'
+          }
+          try {
+            $file = Get-Item suspect/WinPilot-Setup-0.1.1-x64.exe
+            $report.sha256 = (Get-FileHash $file.FullName -Algorithm SHA256).Hash
+            if ($report.sha256 -ne $report.expectedSha256) { throw 'Installer identity mismatch' }
+            $report.signatureStatus = "$( (Get-AuthenticodeSignature $file.FullName).Status )".Trim()
+            $before = Get-MpComputerStatus
+            if (-not $before.AMServiceEnabled -or -not $before.AntivirusEnabled) {
+              throw 'Defender is unavailable or disabled on this runner; no scan verdict.'
+            }
+            Update-MpSignature
+            $status = Get-MpComputerStatus
+            $report.engineVersion = "$($status.AMEngineVersion)"
+            $report.signatureVersion = "$($status.AntivirusSignatureVersion)"
+            $report.signatureUpdated = "$($status.AntivirusSignatureLastUpdated)"
+            if ($status.AntivirusSignatureLastUpdated -lt (Get-Date).AddDays(-2)) {
+              throw 'Defender security intelligence is stale; no scan verdict.'
+            }
+            $platform = Join-Path $env:ProgramData 'Microsoft/Windows Defender/Platform'
+            $scanner = Get-ChildItem "$platform/*/MpCmdRun.exe" -ErrorAction SilentlyContinue |
+              Sort-Object { $_.VersionInfo.FileVersionRaw } -Descending | Select-Object -First 1
+            if (-not $scanner) {
+              $scanner = Get-Item "$env:ProgramFiles/Windows Defender/MpCmdRun.exe"
+            }
+            # DisableRemediation preserves the specimen and ignores file exclusions.
+            & $scanner.FullName -Scan -ScanType 3 -File $file.FullName -DisableRemediation 2>&1 |
+              Tee-Object -FilePath evidence/defender-output.txt
+            $report.exitCode = $LASTEXITCODE
+            if ($report.exitCode -ne 0) {
+              $report.status = 'detection-or-scan-error'
+              throw "Defender returned $($report.exitCode); inspect scanner output."
+            }
+            $report.status = 'no-detection'
+          } catch {
+            $report.error = $_.Exception.Message
+            throw
+          } finally {
+            $report.checkedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+            $report | ConvertTo-Json -Depth 5 | Set-Content evidence/installer-scan.json
+            $report | ConvertTo-Json -Depth 5 | Add-Content $env:GITHUB_STEP_SUMMARY
+          }
+      - name: Upload scan evidence even if scanner is unavailable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blocked-installer-scan-evidence
+          path: evidence/
+          if-no-files-found: warn
