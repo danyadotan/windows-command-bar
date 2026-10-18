@@ -48,8 +48,7 @@ app.whenReady().then(() => {
     return;
   }
   if (process.platform === 'win32' && app.isPackaged) {
-    const nativeHost = path.join(process.resourcesPath, 'native-host', 'WinPilotNativeHost.exe');
-    void installNativeMessagingHost(app.getPath('userData'), nativeHost).catch(() => undefined);
+    void installNativeMessagingHost(app.getPath('userData'), app.getPath('exe')).catch(() => undefined);
   }
   const library = new LocalLibrary(path.join(app.getPath('userData'), 'saved'));
   const monitor = new RuntimeMonitor(path.join(app.getPath('userData'), 'secure'), cipher);
