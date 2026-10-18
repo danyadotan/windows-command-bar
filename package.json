@@ -13,7 +13,8 @@
     "package:win": "npm run build:native-host && npm run build && electron-builder --win nsis --x64 --publish never",
     "build:native-host": "node scripts/build-native-host.cjs",
     "start": "electron .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:extension": "node scripts/check-extension.cjs"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",

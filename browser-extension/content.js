@@ -1,7 +1,9 @@
 (() => {
+  if (globalThis.WinPilotContentInstalled) return;
+  globalThis.WinPilotContentInstalled = true;
   const detector = globalThis.WinPilotFieldDetector;
   if (!detector) return;
-  let lastFocused = null;
+  let lastFocused = document.activeElement;
 
   function labelFor(element) {
     if (element.labels?.length) return Array.from(element.labels).map(label => label.textContent || '').join(' ');
@@ -22,9 +24,16 @@
     });
   }
 
+  function writableTextField(element) {
+    if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) return false;
+    if (element.disabled || element.readOnly || !element.getClientRects().length) return false;
+    if (getComputedStyle(element).visibility !== 'visible') return false;
+    return element instanceof HTMLTextAreaElement || ['text', 'search', 'email', 'tel', 'url', 'number'].includes(element.type);
+  }
+
   function eligibleFields() {
     return Array.from(document.querySelectorAll('input, textarea')).filter(element => {
-      return !element.disabled && !element.readOnly && classify(element);
+      return writableTextField(element) && classify(element);
     });
   }
 
@@ -48,37 +57,19 @@
     return filled;
   }
 
-  function showChip() {
-    const fields = eligibleFields();
-    if (!fields.length || document.getElementById('winpilot-form-chip')) return;
-    const host = document.createElement('div'); host.id = 'winpilot-form-chip';
-    host.style.cssText = 'all:initial;position:fixed;right:18px;bottom:18px;z-index:2147483647';
-    const shadow = host.attachShadow({ mode: 'closed' });
-    const button = document.createElement('button');
-    button.textContent = `WinPilot · ${fields.length} שדות`;
-    button.style.cssText = 'font:600 13px system-ui;color:#fff;background:#171923;border:1px solid #ffffff30;border-radius:999px;padding:10px 14px;box-shadow:0 8px 30px #0005;cursor:pointer;direction:rtl';
-    button.addEventListener('click', () => chrome.runtime.sendMessage({ type: 'get-session-profile' }, response => {
-      if (chrome.runtime.lastError) return;
-      if (!response?.profile) { button.textContent = 'פתחו את ההרחבה והזינו פרופיל'; return; }
-      const count = fill(response.profile); button.textContent = count ? `מולאו ${count} שדות` : 'אין שדות ריקים למילוי';
-    }));
-    shadow.append(button); document.documentElement.append(host);
-  }
-
   document.addEventListener('focusin', event => {
     const target = event.target;
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) lastFocused = target;
   }, true);
 
-  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL('popup.html')) return;
     if (message?.type === 'fill-profile') { sendResponse({ filled: fill(message.profile || {}) }); return; }
     if (message?.type === 'insert-snippet') {
       const target = lastFocused;
-      if (!target || target.disabled || target.readOnly || ['password', 'hidden'].includes(target.type)) { sendResponse({ inserted: false }); return; }
+      if (!writableTextField(target)) { sendResponse({ inserted: false }); return; }
       sendResponse({ inserted: setValue(target, String(message.value || '')) });
     }
   });
 
-  showChip();
-  new MutationObserver(() => showChip()).observe(document.documentElement, { childList: true, subtree: true });
 })();

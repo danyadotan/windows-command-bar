@@ -9,3 +9,4 @@ button { width: 100%; margin-top: 7px; border: 1px solid #3e4559; border-radius:
 button.primary { background: #6758e8; border-color: #7b6df0; font-weight: 700; }
 hr { border: 0; border-top: 1px solid #2f3341; margin: 15px 0; }
 #status { min-height: 18px; margin-bottom: 0; color: #aeb7ff; font-size: 12px; }
+a { color: #c2baff; font-size: 12px; }
