@@ -3,8 +3,10 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="popup.css"><title>WinPilot</title></head>
 <body>
   <header><strong>WinPilot</strong><small>Form Assistant</small></header>
-  <p class="privacy">הפרטים נשמרים בזיכרון הסשן בלבד ונמחקים בסגירת הדפדפן.</p>
-  <label>פרופיל מוצפן מ־WinPilot<select id="nativeProfile"><option value="">בודק חיבור…</option></select></label>
+  <p class="privacy">פרטי הפרופיל והסניפט נשמרים בסשן בלבד. מילוי חושף את הפרטים לאתר הפעיל, שיכול לקרוא ולשלוח אותם גם לפני שליחת הטופס. בדקו את האתר לפני מילוי.</p>
+  <p class="privacy">טעינה מ־Windows מביאה לזיכרון את כל הפרופילים והסניפטים השמורים ב־WinPilot במחשב זה. לא נשלחים לשרת של WinPilot.</p>
+  <button id="loadNative">אישור וטעינת פרופילים מ־Windows</button>
+  <label>פרופיל מוצפן מ־WinPilot<select id="nativeProfile"><option value="">טרם נטען</option></select></label>
   <label>שם מלא<input id="fullName" autocomplete="name"></label>
   <label>אימייל אישי<input id="email" type="email" autocomplete="email"></label>
   <label>אימייל עבודה<input id="workEmail" type="email"></label>
@@ -15,7 +17,10 @@
   <hr>
   <label>סניפט זמני<textarea id="snippet" rows="2" placeholder="טקסט חוזר או שאילתת חיפוש"></textarea></label>
   <button id="insert">הוספה לשדה הפעיל</button>
+  <p class="privacy">תזכורת שומרת את כתובת הדף המלאה וכותרתו בזיכרון הסשן עד לפתיחתה, למחיקה או לסיום סשן הדפדפן. היא עשויה להופיע כהתראה במערכת.</p>
   <button id="remind">תזכורת לטופס בעוד 15 דקות</button>
+  <button id="clear">מחיקת נתוני הסשן והתזכורות</button>
+  <p><a href="privacy.html" target="_blank">פרטיות ושימוש בנתונים</a></p>
   <p id="status" role="status"></p>
   <script src="popup.js"></script>
 </body>

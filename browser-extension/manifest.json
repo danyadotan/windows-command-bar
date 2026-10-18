@@ -1,23 +1,36 @@
 {
   "manifest_version": 3,
   "name": "WinPilot Form Assistant",
-  "version": "0.1.0",
-  "description": "Private, click-to-fill form assistance and unfinished-form reminders.",
+  "version": "0.1.1",
+  "description": "Click to fill empty form fields, insert reusable text, and set session-only reminders. Optional local Windows profile bridge.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArYWdrfaLBaeZiwrjBW6KtRPP3V5ZQLhnc6W6YTrazlPPU/+7Zm17ZWyVFxGSA/xehIdNU2M3JoJ3WJe+xyDmIjDI9Ri+wD1YSH0PQzyZ3gf7KtqZZdZ/xSyJHgTdllwtsvEHv35yyPfyDBxUSLIa/LxNr0WvTNlAFOYkvOPRog2whDPs5zUHdPuFwlTTN8oqFzGyxmI6ZM02edke6be2ry0JvX3qN6KUXK03Yg8Zy7TOaWYiJurX9eAwPaMxoBSDEoocA5waPWYaKNHzmd877ZJHM76pI1PEssMKTg2SYWtSSDtsIOkxIcAiRQ+j/ZzR9WUNekULsN1m/wr+pqvaowIDAQAB",
-  "permissions": ["storage", "alarms", "notifications", "tabs", "nativeMessaging"],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications",
+    "activeTab",
+    "scripting"
+  ],
   "action": {
     "default_title": "WinPilot Form Assistant",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["field-detector.js", "content.js"],
-      "run_at": "document_idle"
-    }
-  ]
+  "optional_permissions": [
+    "nativeMessaging"
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
 }

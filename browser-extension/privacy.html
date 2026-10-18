@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WinPilot Form Assistant — Privacy</title></head>
+<body>
+<h1>WinPilot Form Assistant: data practices</h1>
+<p>Updated October 18, 2026. Scope: this browser extension and its optional local Windows profile bridge. The desktop application's separate AI-provider features are outside this extension's data flow.</p>
+<h2>What is handled and why</h2>
+<p>You can enter a name, personal/work email, phone number, signature and reusable text. These are used only for the form assistance you request. Saving a profile or inserting a snippet uses Chrome session storage in memory. Session data is cleared when the extension is disabled, reloaded or updated, or the browser session ends. Closing a window may not end a browser session if background processes remain running.</p>
+<p>Clicking the Windows load button requests optional Native Messaging permission and reads the profiles and snippets from WinPilot on this computer. The native host decrypts the local desktop store using Windows DPAPI for the current Windows user. The response contains all saved profiles and snippets, not just the selected profile. The popup holds this response in memory; native snippets are currently not displayed. Profile details enter session storage only if you click Save for session.</p>
+<p>Clicking Fill or Insert gives the extension temporary access to the active tab. It inspects form field descriptors and checks whether values are empty; it does not copy existing field values into storage or send them to the developer. Filling dispatches input/change events: the website can read and transmit inserted data immediately, even before form submission. Only fill a website you trust. Filling supports HTTPS pages and HTTP loopback test pages, top frame only; browser-protected pages and embedded cross-origin forms are not supported.</p>
+<p>If you request a reminder, the full HTTP(S) URL (including path, query and fragment) and up to 120 characters of page title are stored in session memory. They can contain sensitive data. The title appears in an operating-system notification. The URL is used only to reopen the page when you click the notification. The reminder does not save form entries or recover an unsaved draft.</p>
+<h2>Sharing and remote services</h2>
+<p>This extension contains no analytics, advertising, remote code, cloud AI calls, or developer-server uploads. Native Messaging stays on this computer. You choose what to insert into a third-party website; that site handles it under its own policies. The developer does not sell extension user data or use it for advertising, unrelated purposes or credit decisions.</p>
+<h2>Retention and deletion</h2>
+<p>Use “Delete session data and reminders” in the popup to clear session profile/snippet storage, pending reminders and extension notifications. Clicking a reminder notification also removes that reminder. Dismissing a notification does not delete its reminder record; use the clear button or end the browser session. Session reminders do not survive a browser session restart. Updating from an older version removes reminder URLs and titles formerly saved in local extension storage.</p>
+<p>Clearing extension data or uninstalling the extension does not remove desktop profiles. The desktop encrypted store is at <code>%APPDATA%\WinPilot\secure\form-assistant.enc</code>. With WinPilot closed, deleting that file removes all desktop profiles, snippets and saved draft links together; back up anything you want to keep first. Values already inserted into a website and data the site retained are not removed by this extension.</p>
+<h2>Limited Use</h2>
+<p>WinPilot Form Assistant's use of information received from Google APIs will adhere to the Chrome Web Store User Data Policy, including the Limited Use requirements.</p>
+<h2>Contact</h2>
+<p>Developer: Danya Dotan, Bridge-iT. Privacy/support: <a href="mailto:danya@dynamicbridge.io">danya@dynamicbridge.io</a>.</p>
+<p>This packaged notice documents implemented behavior. A matching publicly accessible privacy policy URL must be configured before store submission. No store approval or public release is claimed.</p>
+</body></html>

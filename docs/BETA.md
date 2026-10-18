@@ -2,6 +2,10 @@
 
 Assessment: 2026-10-13. Baseline: main `9ee22e0440f26ec9f21ec9f5f438983e67ebcc10`, version 0.1.1. WinPilot is an internal-test candidate, not yet an approved customer beta or paid release. This assessment does not select it as a sales finalist.
 
+## Browser extension preparation update (October 18, 2026)
+
+See [Chrome Web Store preparation](CHROME-WEB-STORE.md) for the proposed narrower popup-only extension, session-only reminders, explicit optional native permission, store identity reconciliation and submission drafts. These proposed changes supersede older extension interaction/retention descriptions once merged. PR #17 remains a separate pending acceptance flow; no real Chrome/Windows pass or store approval is established.
+
 ## Verified release evidence
 
 [Windows main run 38044816264](https://github.com/danyadotan/windows-command-bar/actions/runs/38044816264) succeeded on October 10: dependency audit, tests, TypeScript/Vite build, x64 NSIS packaging, packaged Native Messaging ping, and extension ZIP creation. Installer artifact 11666767137 and extension artifact 11666986969 were unexpired on October 13; both expire January 8, 2027. Artifact archive digests are not installer-file hashes or Authenticode evidence. No GitHub Releases existed at inspection.

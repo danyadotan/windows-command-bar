@@ -1,21 +1,26 @@
 # WinPilot Form Assistant extension
 
-This unpacked Manifest V3 companion extension runs in Microsoft Edge or Google Chrome. It detects likely full-name, personal/work email, phone, signature, and search fields without reading or uploading their values.
+Manifest V3, Hebrew popup, user-activated form assistance. This source is an internal test candidate, not a reviewed Chrome Web Store release. See [store readiness](../docs/CHROME-WEB-STORE.md) for the audit, submission copy, permissions, privacy declarations and release gates.
 
-## Install for testing
+## Install for internal testing
 
-1. Open `edge://extensions` or `chrome://extensions`.
-2. Enable **Developer mode**.
-3. Download and extract the `WinPilot-Browser-Extension` GitHub Actions artifact, or use this source directory.
-4. Choose **Load unpacked** and select the extracted directory containing `manifest.json`.
-5. Pin **WinPilot Form Assistant** to the toolbar.
+1. Open `chrome://extensions` (or `edge://extensions`), enable **Developer mode**.
+2. Load unpacked from this directory or the extracted CI extension artifact.
+3. Pin **WinPilot Form Assistant**. Open an HTTPS form or a synthetic form served on HTTP loopback (`http://127.0.0.1:8765`). Browser-protected pages and cross-origin frames are unsupported.
+4. Open the popup and enter a temporary profile. Saving is optional and lasts only for the current browser session. Click **Fill empty fields** to act on the active page. There is no automatic page chip or scanning across websites.
+5. For native testing, install the internal WinPilot Windows build. Read the popup disclosure, click **Approve and load profiles from Windows**, grant optional Native Messaging permission, choose a profile, then click Fill. Opening the popup alone does not read native profiles. The host returns all desktop profiles and snippets; the popup displays profiles only. Unavailable host or denied permission leaves manual session profiles available.
+6. Select an empty text field before opening the popup to insert a temporary snippet. Password, hidden, file, disabled, read-only, non-text and non-rendered fields are excluded. Existing values are not overwritten. No form is submitted by the extension, but sites can react to input/change events immediately.
 
-Enter a profile in the popup and save it for the current browser session. A WinPilot chip appears only on pages with recognized fields. Filling requires an explicit click and affects empty fields only. Password, hidden, file, disabled, and read-only fields are never filled.
+## Data boundaries
 
-After installing and opening the packaged WinPilot desktop app once, the popup can also load its encrypted profiles on demand through the browser's Native Messaging protocol. The host registration is per-user for Edge and Chrome and is restricted to this extension's fixed ID. Native data is returned only to memory and is not copied into persistent browser storage.
+No extension analytics, remote executable code, cloud AI calls or developer-server uploads. Filling exposes the inserted data to the active website. Production filling is HTTPS only; plain HTTP is restricted to loopback fixtures. Session storage holds manually saved profiles, temporary snippets and requested reminder URLs/titles. Native profiles stay in popup memory unless explicitly saved for the session. Never use real credentials or sensitive profiles in testing.
 
-The profile and temporary snippet use `chrome.storage.session`, so they are removed when the browser exits. Form reminders persist only the validated HTTP(S) URL and page title in `chrome.storage.local`; clicking the notification returns directly to that page.
+Reminders reopen the selected URL after a notification click; they do not save form entries. They are session-only and do not survive the browser session ending. Background Chrome processes can keep a session alive after closing a window. Use the popup clear button to remove session data, pending reminders and extension notifications. Desktop encrypted profiles are not removed. The packaged [privacy notice](privacy.html) explains retention, deletion, native data and third-party websites.
 
-## Current integration boundary
+## Validation / packaging
 
-The bridge is intentionally read-only and exposes only profiles and snippets. Draft URLs remain inside the desktop app. If the native host is unavailable, the extension falls back to session-only manual profiles.
+Run `npm run check:extension`, `npm test` and `npm run build` from the repository root. `node scripts/check-extension.cjs --stage` writes only runtime files to `release/extension`; CI zips that directory with `manifest.json` at the ZIP root. PNG icons derive from the existing SVG artwork. README/source SVG and test fixtures are not needed in the runtime package.
+
+The public development key derives ID `dbkcdkaciiebdadcnmbmeljjfalbobkh`. It is not proof of a store-assigned ID. The Windows C# host, generated/static host manifests, TypeScript allowlist and native smoke script must all agree with the actual store item ID before release. Never replace exact allowlists with wildcards. Run `node scripts/check-extension.cjs --expected-id STORE_ITEM_ID` once that identity is available through an approved dashboard step.
+
+PR #17 adds a separate synthetic acceptance fixture and guide. When using it with this branch, explicitly press the Windows-load button before choosing a profile; use the popup Fill button (there is no page chip). No result from #17 is assumed passed here.
