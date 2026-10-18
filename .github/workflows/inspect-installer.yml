@@ -19,7 +19,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: WinPilot-Windows-unsigned
-          run-id: 39143697264
+          run-id: 39156974941
           github-token: ${{ github.token }}
           path: suspect
       - name: Verify identity and scan without executing the installer
@@ -28,14 +28,14 @@ jobs:
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path evidence -Force | Out-Null
           $report = [ordered]@{
-            sourceRun = '39143697264'
-            sourceCommit = '4c853a9f710201eaeb0cfe349d228fc6fcfc0bdb'
-            expectedSha256 = '5E3378B76BBBAE976DB7D5204A080546B1051ACB2E600C6A10C5C242D8B27106'
+            sourceRun = '39156974941'
+            sourceCommit = '788ff415a2b585cc138d9518d54bd2a378f000c5'
+            expectedSha256 = '327B04E34321F53759CBEE01355AB8A766E0C29BC5ED7B6C096077877AFAD94E'
             status = 'not-scanned'
             limitation = 'Defender scanning does not establish Chrome Safe Browsing clearance or release readiness.'
           }
           try {
-            $file = Get-Item suspect/WinPilot-Setup-0.1.1-x64.exe
+            $file = Get-Item suspect/WinPilot-Setup-0.1.2-x64.exe
             $report.sha256 = (Get-FileHash $file.FullName -Algorithm SHA256).Hash
             if ($report.sha256 -ne $report.expectedSha256) { throw 'Installer identity mismatch' }
             $report.signatureStatus = "$( (Get-AuthenticodeSignature $file.FullName).Status )".Trim()
