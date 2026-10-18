@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WinPilot — בדיקת החיבור לכרום</title>
+<style>
+body{font:18px/1.6 system-ui;background:#f3f2f6;color:#242031;max-width:760px;margin:32px auto;padding:0 20px}section{background:white;padding:24px;border-radius:16px;margin:20px 0}label{display:block;margin:16px 0}input,textarea{display:block;box-sizing:border-box;width:100%;padding:10px;font:inherit;border:1px solid #8d849c;border-radius:8px}button{font:inherit;background:#554477;color:white;padding:12px 20px;border:0;border-radius:8px;cursor:pointer}output{display:block;margin-top:16px;white-space:pre-line}code{direction:ltr;unicode-bidi:isolate}small{display:block}
+</style>
+<h1>כרום ↔ WinPilot: בדיקה אחת שלמה</h1>
+<p>דף בדיקה מקומי. אין שליחת טופס, שירות חיצוני או שמירת נתונים בדף. השתמשו בפרטי הדוגמה בלבד.</p>
+<section>
+<h2>1. הכינו פרופיל ביישום Windows</h2>
+<p>צרו פרופיל בשם <b>Bridge test</b>: שם מלא <b>Bridge Test</b>, אימייל <code>bridge-test@example.invalid</code>, טלפון <code>0000000000</code>, חתימה <b>WinPilot synthetic test</b>.</p>
+<p>פתחו את תוסף WinPilot ובחרו בפרופיל <b>Bridge test</b> מהרשימה שמגיעה מ־WinPilot. אל תקלידו את הפרטים ידנית בתוסף: אנו בודקים את החיבור ל־Windows.</p>
+</section>
+<section>
+<h2>2. לפני הלחיצה, השדות צריכים להיות ריקים</h2>
+<p>בתוסף לחצו על מילוי הפרופיל. אחר כך חזרו לדף ולחצו על בדיקת התוצאה.</p>
+<form id="fixture" autocomplete="off">
+<label>שם מלא<input id="fullName" name="fullName" autocomplete="name"></label>
+<label>אימייל<input id="email" name="email" type="email"></label>
+<label>טלפון<input id="phone" name="phone" type="tel"></label>
+<label>חתימה<textarea id="signature" name="signature"></textarea></label>
+<h2>3. השדות הבאים חייבים להישאר ללא שינוי</h2>
+<label>אימייל שכבר מולא<input id="existing" name="existing_email" type="email" value="keep-me@example.invalid"></label>
+<label>שם מלא לקריאה בלבד<input id="readonly" name="fullName_readonly" value="KEEP READONLY" readonly></label>
+<label>טלפון לא פעיל<input id="disabled" name="phone_disabled" value="KEEP DISABLED" disabled></label>
+<label>סיסמה — חייבת להישאר ריקה<input id="password" name="email_password" type="password" autocomplete="new-password"></label>
+<label>קובץ — חייב להישאר ריק<input id="file" name="signature_file" type="file"></label>
+<input id="hidden" name="fullName_hidden" type="hidden" value="KEEP HIDDEN">
+<button type="button" id="check">בדיקת התוצאה</button>
+<button type="reset">איפוס לבדיקה חוזרת</button>
+<output id="result" aria-live="polite"></output>
+</form>
+<small>הבדיקה מאמתת ערכי שדות בלבד. היא אינה מוכיחה לבדה מאין הגיעו הנתונים, הצפנה, ניקוי סשן או התאמה להפצה.</small>
+</section>
+<footer>Danya Dotan · WinPilot · MIT · <a href="https://github.com/danyadotan/windows-command-bar">המאגר המקורי</a></footer>
+<script>
+const form = document.querySelector('#fixture');
+const result = document.querySelector('#result');
+form.addEventListener('submit', event => event.preventDefault());
+form.addEventListener('reset', () => { result.textContent = ''; });
+document.querySelector('#check').addEventListener('click', () => {
+  const expected = {fullName:'Bridge Test', email:'bridge-test@example.invalid', phone:'0000000000', signature:'WinPilot synthetic test', existing:'keep-me@example.invalid', readonly:'KEEP READONLY', disabled:'KEEP DISABLED', password:'', file:'', hidden:'KEEP HIDDEN'};
+  const failures = Object.entries(expected).filter(([id,value]) => document.getElementById(id).value !== value).map(([id]) => id);
+  result.textContent = failures.length ? 'לא עבר. בדקו את השדות: ' + failures.join(', ') : 'עבר: ארבעת השדות מולאו וכל שדות הבקרה נשארו ללא שינוי. ודאו שהפרופיל נבחר מהרשימה של WinPilot.';
+});
+</script>
+</html>
