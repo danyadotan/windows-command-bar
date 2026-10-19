@@ -30,7 +30,7 @@ try {
   foreach ($key in $keys) {
     $manifestPath = (Get-Item -LiteralPath $key).GetValue('')
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if ($manifest.path -ne $hostExe) { throw 'First-launch host path does not match installed host.' }
+    if ($manifest.path -ne $app) { throw 'First-launch host path does not match installed application host.' }
     if (@($manifest.allowed_origins).Count -ne 1 -or $manifest.allowed_origins[0] -ne 'chrome-extension://dbkcdkaciiebdadcnmbmeljjfalbobkh/') { throw 'Unexpected native host origin allowlist.' }
   }
   node scripts/native-host-smoke.cjs $hostExe
