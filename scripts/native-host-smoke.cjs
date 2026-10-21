@@ -14,7 +14,7 @@ frame.writeUInt32LE(body.length, 0); body.copy(frame, 4);
 
 // Match the arguments Chrome and Edge use for a service-worker native host.
 const child = spawn(path.resolve(executable), [origin, '--parent-window=0'], {
-  stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true
+  // CI's Node parent has a console. Electron's pre-JS console attachment emits\n  // CRLF into stdout; Chrome is a GUI parent. Preserve the inherited pipes.\n  env: { ...process.env, ELECTRON_NO_ATTACH_CONSOLE: '1' },\n  stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true
 });
 const stdout = [];
 const stderr = [];
