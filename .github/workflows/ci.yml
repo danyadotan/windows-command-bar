@@ -23,7 +23,7 @@ jobs:
       - run: npm run build
       - run: npm run package:win
       - name: Smoke-test packaged native messaging host
-        run: node scripts/native-host-smoke.cjs "release/win-unpacked/resources/native-host/WinPilotNativeHost.exe"
+        run: node scripts/native-host-smoke.cjs (Resolve-Path "release/win-unpacked/WinPilot.exe").Path
       - name: Smoke-test installation and uninstall
         shell: pwsh
         run: |

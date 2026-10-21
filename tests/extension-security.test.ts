@@ -155,7 +155,7 @@ describe('on-demand content script', () => {
   });
 });
 
-async function popup(url: string, granted = true) {
+async function popup(url: string, granted = true, nativeProfiles: object[] = []) {
   const controls = new Map<string, any>();
   const control = (id: string) => {
     if (!controls.has(id)) controls.set(id, { value: '', textContent: '', listeners: {}, addEventListener(type: string, fn: Function) { this.listeners[type] = fn; }, replaceChildren() {}, append() {} });
@@ -165,7 +165,7 @@ async function popup(url: string, granted = true) {
     tabs: { query: async () => [{ id: 7, url }], sendMessage: vi.fn(async () => ({ filled: 1, inserted: true })) },
     scripting: { executeScript: vi.fn(async () => []) },
     permissions: { request: vi.fn(async () => granted) },
-    runtime: { sendMessage: vi.fn(async () => ({ ok: true, profiles: [] })) },
+    runtime: { sendMessage: vi.fn(async () => ({ ok: true, profiles: nativeProfiles })) },
     storage: { session: { get: async () => ({}), set: vi.fn() } }
   };
   vm.runInNewContext(source('popup.js'), { chrome, URL, document: { querySelector: control, createElement: () => ({}) } });
@@ -199,5 +199,34 @@ describe('popup user activation', () => {
       expect(app.chrome.scripting.executeScript).not.toHaveBeenCalled();
       expect(app.chrome.tabs.sendMessage).not.toHaveBeenCalled();
     }
+  });
+});
+
+
+describe('popup action results', () => {
+  it('loads and selects a synthetic native profile, saves it for the session, then clears it', async () => {
+    const profile = { label: 'Synthetic', fullName: 'Synthetic User', email: 'test@example.invalid' };
+    const app = await popup('https://example.com/', true, [profile]);
+    await app.click('#loadNative');
+    expect(app.chrome.runtime.sendMessage).toHaveBeenCalledWith({ type: 'get-native-form-data' });
+    app.control('#nativeProfile').listeners.change({ currentTarget: { value: '0' } });
+    expect(app.control('#fullName').value).toBe(profile.fullName);
+    expect(app.control('#email').value).toBe(profile.email);
+    await app.click('#save');
+    expect(app.chrome.storage.session.set).toHaveBeenCalledWith({ profile: { fullName: profile.fullName, email: profile.email, workEmail: '', phone: '', signature: '' } });
+    await app.click('#clear');
+    expect(app.chrome.runtime.sendMessage).toHaveBeenCalledWith({ type: 'clear-session-data' });
+    expect(app.control('#fullName').value).toBe('');
+    expect(app.control('#email').value).toBe('');
+  });
+  it('inserts the chosen snippet and schedules a reminder for the active page', async () => {
+    const app = await popup('https://example.com/');
+    app.control('#snippet').value = 'Synthetic snippet';
+    await app.click('#insert');
+    expect(app.chrome.tabs.sendMessage).toHaveBeenCalledWith(7, { type: 'insert-snippet', value: 'Synthetic snippet' });
+    expect(app.control('#status').textContent).toContain('הסניפט נוסף');
+    await app.click('#remind');
+    expect(app.chrome.runtime.sendMessage).toHaveBeenCalledWith({ type: 'schedule-reminder', url: 'https://example.com/', title: undefined });
+    expect(app.control('#status').textContent).toContain('התזכורת נקבעה');
   });
 });
