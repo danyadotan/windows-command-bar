@@ -44,7 +44,7 @@ app.whenReady().then(() => {
   const vault = new ProviderVault(path.join(app.getPath('userData'), 'secure'), cipher);
   const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
   if (nativeMessagingOrigin) {
-    void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout).finally(() => app.quit());
+    void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout).then(() => app.quit(), () => app.exit(1));
     return;
   }
   if (process.platform === 'win32' && app.isPackaged) {

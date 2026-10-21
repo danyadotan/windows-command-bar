@@ -1,13 +1,39 @@
+import { Readable, Writable } from 'node:stream';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ALLOWED_EXTENSION_ORIGIN, encodeNativeMessage, EXTENSION_ID, handleNativeMessage, installNativeMessagingHost, NativeMessageDecoder, nativeOriginForLaunch, nativeOriginFromArgs } from '../src/main/native-messaging';
+import { ALLOWED_EXTENSION_ORIGIN, encodeNativeMessage, EXTENSION_ID, handleNativeMessage, installNativeMessagingHost, NativeMessageDecoder, nativeOriginForLaunch, nativeOriginFromArgs, serveNativeMessaging } from '../src/main/native-messaging';
 
 const temporaryDirectories: string[] = [];
 afterEach(async () => { await Promise.all(temporaryDirectories.splice(0).map(directory => rm(directory, { recursive: true, force: true }))); });
 
 describe('native messaging bridge', () => {
+  it('waits for the response write to finish after input EOF', async () => {
+    let finishWrite: (() => void) | undefined;
+    const frames: Buffer[] = [];
+    const output = new Writable({ write(chunk, _encoding, callback) {
+      frames.push(Buffer.from(chunk));
+      finishWrite = () => callback();
+    } });
+    let completed = false;
+    const serving = serveNativeMessaging({} as never, ALLOWED_EXTENSION_ORIGIN,
+      Readable.from([encodeNativeMessage({ type: 'ping' })]), output).then(() => { completed = true; });
+    await new Promise(resolve => setTimeout(resolve, 10));
+    expect(finishWrite).toBeTypeOf('function');
+    expect(completed).toBe(false);
+    finishWrite!();
+    await serving;
+    expect(new NativeMessageDecoder().push(Buffer.concat(frames))).toEqual([{ ok: true, type: 'pong' }]);
+  });
+
+  it('rejects failed pipe writes', async () => {
+    const output = new Writable({ write(_chunk, _encoding, callback) { callback(new Error('broken pipe')); } });
+    output.on('error', () => {});
+    await expect(serveNativeMessaging({} as never, ALLOWED_EXTENSION_ORIGIN,
+      Readable.from([encodeNativeMessage({ type: 'ping' })]), output)).rejects.toThrow('broken pipe');
+  });
+
   it('decodes length-prefixed messages split across chunks', () => {
     const frame = encodeNativeMessage({ type: 'ping' }); const decoder = new NativeMessageDecoder();
     expect(decoder.push(frame.subarray(0, 3))).toEqual([]);
