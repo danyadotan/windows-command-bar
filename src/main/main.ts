@@ -1,5 +1,6 @@
 import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, Notification, safeStorage, shell } from 'electron';
 import path from 'node:path';
+import { createReadStream, createWriteStream } from 'node:fs';
 import { planCommand } from './planner';
 import type { CommandRequest } from '../shared/contracts';
 import type { ConfigureProviderRequest, FormDraft, FormProfile, FormSnippet, ProviderId, SaveItemRequest } from '../shared/contracts';
@@ -44,7 +45,11 @@ app.whenReady().then(() => {
   const vault = new ProviderVault(path.join(app.getPath('userData'), 'secure'), cipher);
   const forms = new FormAssistantStore(path.join(app.getPath('userData'), 'secure'), cipher);
   if (nativeMessagingOrigin) {
-    void serveNativeMessaging(forms, nativeMessagingOrigin, process.stdin, process.stdout).then(() => app.quit(), () => app.exit(1));
+    // Electron replaces process.stdin with an EOF-only Readable on Windows.
+    // Read the inherited browser pipe directly; keep native frames binary.
+    const input = process.platform === 'win32' ? createReadStream('', { fd: 0, autoClose: false }) : process.stdin;
+    const output = process.platform === 'win32' ? createWriteStream('', { fd: 1, autoClose: false }) : process.stdout;
+    void serveNativeMessaging(forms, nativeMessagingOrigin, input, output).then(() => app.quit(), () => app.exit(1));
     return;
   }
   if (process.platform === 'win32' && app.isPackaged) {
