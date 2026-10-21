@@ -1,6 +1,10 @@
 # Disposable Windows CI user only: this installs, launches, and uninstalls WinPilot.
 param([Parameter(Mandatory = $true)][string]$Installer)
 $ErrorActionPreference = 'Stop'
+if ($env:CI -ne 'true') { throw 'Use a disposable Windows CI account only.' }
+$secure = Join-Path $env:APPDATA 'WinPilot\secure'
+if (Test-Path $secure) { throw 'Existing secure data; refusing to access user profiles.' }
+$fixtureAttempted = $false
 $root = Join-Path $env:LOCALAPPDATA 'WinPilot-CI-Smoke'
 if (Test-Path $root) { throw 'Smoke install directory already exists; refusing to modify it.' }
 $keys = @(
@@ -33,10 +37,24 @@ try {
     if ($manifest.path -ne $app) { throw 'First-launch host path does not match installed application host.' }
     if (@($manifest.allowed_origins).Count -ne 1 -or $manifest.allowed_origins[0] -ne 'chrome-extension://dbkcdkaciiebdadcnmbmeljjfalbobkh/') { throw 'Unexpected native host origin allowlist.' }
   }
-  node scripts/native-host-smoke.cjs $hostExe
+  # Use the manifest target verified above, never the legacy C# binary.
+  node scripts/native-host-smoke.cjs $app
   if ($LASTEXITCODE -ne 0) { throw 'Installed native host ping failed.' }
+  $fixtureAttempted = $true
+  & ./node_modules/.bin/electron.cmd scripts/seed-native-smoke.cjs
+  if ($LASTEXITCODE -ne 0) { throw 'Synthetic safeStorage fixture creation failed.' }
+  node scripts/native-host-smoke.cjs $app --form-data
+  if ($LASTEXITCODE -ne 0) { throw 'Installed native host safeStorage profile retrieval failed.' }
 } finally {
   Get-Process WinPilot -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq (Join-Path $root 'WinPilot.exe') } | Stop-Process -Force
+  if ($fixtureAttempted -and (Test-Path $secure)) {
+    # Only remove the synthetic fixture; never recursively delete user data.
+    foreach ($name in @('form-assistant.enc', 'form-assistant.enc.tmp')) {
+      $file = Join-Path $secure $name
+      if (Test-Path $file) { Remove-Item -LiteralPath $file }
+    }
+    if (@(Get-ChildItem -LiteralPath $secure -Force).Count -eq 0) { Remove-Item -LiteralPath $secure }
+  }
   $uninstaller = Join-Path $root 'Uninstall WinPilot.exe'
   if (Test-Path $uninstaller) { Run-Installer $uninstaller @('/S') }
 }
@@ -46,4 +64,4 @@ foreach ($key in $keys) { if (Test-Path $key) { throw "Host registration survive
 $generated = Join-Path $env:APPDATA 'WinPilot\native-messaging\io.dynamicbridge.winpilot.json'
 if (Test-Path $generated) { throw 'Generated host manifest survived uninstall.' }
 if (Test-Path (Join-Path $root 'WinPilot.exe')) { throw 'Application survived uninstall.' }
-Write-Output 'Installer, visible first launch, host ping, and uninstall cleanup passed.'
+Write-Output 'Installer, visible first launch, host ping, safeStorage profile retrieval, and uninstall cleanup passed.'

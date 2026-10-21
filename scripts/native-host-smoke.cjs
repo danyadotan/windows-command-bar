@@ -2,10 +2,13 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 
 const executable = process.argv[2];
+const formData = process.argv[3] === '--form-data';
+const expectedProfile = require('./synthetic-native-profile.cjs');
+const { isDeepStrictEqual } = require('node:util');
 const origin = 'chrome-extension://dbkcdkaciiebdadcnmbmeljjfalbobkh/';
-if (!executable || !path.isAbsolute(path.resolve(executable))) throw new Error('Expected a packaged WinPilot executable path');
+if (!executable || !path.isAbsolute(executable)) throw new Error('Expected a packaged WinPilot executable path');
 
-const body = Buffer.from(JSON.stringify({ type: 'ping' }), 'utf8');
+const body = Buffer.from(JSON.stringify({ type: formData ? 'get-form-data' : 'ping' }), 'utf8');
 const frame = Buffer.alloc(body.length + 4);
 frame.writeUInt32LE(body.length, 0); body.copy(frame, 4);
 
@@ -28,8 +31,11 @@ child.on('close', code => {
   const length = output.readUInt32LE(0);
   if (output.length !== length + 4) throw new Error('Native host returned an invalid frame');
   const response = JSON.parse(output.subarray(4).toString('utf8'));
-  if (response.ok !== true || response.type !== 'pong') throw new Error(`Unexpected native host response: ${JSON.stringify(response)}`);
-  process.stdout.write('packaged native host ping passed\n');
+  const valid = formData
+    ? response.ok === true && response.type === 'form-data' && isDeepStrictEqual(response.profiles, [expectedProfile]) && isDeepStrictEqual(response.snippets, [])
+    : response.ok === true && response.type === 'pong';
+  if (!valid) throw new Error(`Unexpected native host response: ${JSON.stringify(response)}`);
+  process.stdout.write(`packaged native host ${formData ? 'safeStorage profile retrieval' : 'ping'} passed\n`);
 });
 
 child.stdin.end(frame);
