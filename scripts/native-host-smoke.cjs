@@ -17,7 +17,7 @@ const child = spawn(path.resolve(executable), [origin, '--parent-window=0'], {
   // CI's Node parent has a console. Electron's pre-JS console attachment emits
   // CRLF into stdout; Chrome is a GUI parent. Preserve the inherited pipes.
   env: { ...process.env, ELECTRON_NO_ATTACH_CONSOLE: '1' },
-  stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true
+  stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, detached: process.platform === 'win32'
 });
 const stdout = [];
 const stderr = [];
