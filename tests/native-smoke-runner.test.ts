@@ -29,7 +29,7 @@ function run(response: unknown, mode = '--form-data', code = 0) {
     process: { argv: ['node', 'smoke', process.execPath, mode], stdout: { write } },
     Buffer, JSON, setTimeout: () => 1, clearTimeout: vi.fn()
   });
-  expect(spawn).toHaveBeenCalledWith(process.execPath, ['chrome-extension://dbkcdkaciiebdadcnmbmeljjfalbobkh/', '--parent-window=0'], expect.any(Object));
+  expect(spawn).toHaveBeenCalledWith(process.execPath, ['chrome-extension://dbkcdkaciiebdadcnmbmeljjfalbobkh/', '--parent-window=0', '--no-stdio-init'], expect.any(Object));
   return write;
 }
 
