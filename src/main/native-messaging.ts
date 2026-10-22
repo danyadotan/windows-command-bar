@@ -62,11 +62,16 @@ export async function serveNativeMessaging(store: FormAssistantStore, origin: st
   const decoder = new NativeMessageDecoder();
   for await (const chunk of input) {
     for (const message of decoder.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))) {
+      let response: unknown;
       try {
-        output.write(encodeNativeMessage(await handleNativeMessage(message, () => store.get())));
+        response = await handleNativeMessage(message, () => store.get());
       } catch {
-        output.write(encodeNativeMessage({ ok: false, error: 'native-host-failure' }));
+        response = { ok: false, error: 'native-host-failure' };
       }
+      // Electron app.quit() does not wait for pending pipe writes after stdin EOF.
+      await new Promise<void>((resolve, reject) => {
+        output.write(encodeNativeMessage(response), error => error ? reject(error) : resolve());
+      });
     }
   }
 }

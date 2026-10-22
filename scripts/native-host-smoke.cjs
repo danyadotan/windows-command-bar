@@ -27,9 +27,9 @@ child.on('close', code => {
   clearTimeout(timeout);
   const output = Buffer.concat(stdout);
   if (code !== 0) throw new Error(`Native host exited with ${code}: ${Buffer.concat(stderr).toString('utf8')}`);
-  if (output.length < 4) throw new Error('Native host returned no framed response');
+  if (output.length < 4) throw new Error(`Native host returned no framed response (exit=${code}, stderr=${Buffer.concat(stderr).toString('utf8')})`);
   const length = output.readUInt32LE(0);
-  if (output.length !== length + 4) throw new Error('Native host returned an invalid frame');
+  if (output.length !== length + 4) throw new Error(`Native host returned an invalid frame (bytes=${output.length}, length=${length}, prefix=${output.subarray(0, 80).toString('hex')}, stderr=${Buffer.concat(stderr).toString('utf8')})`);
   const response = JSON.parse(output.subarray(4).toString('utf8'));
   const valid = formData
     ? response.ok === true && response.type === 'form-data' && isDeepStrictEqual(response.profiles, [expectedProfile]) && isDeepStrictEqual(response.snippets, [])
