@@ -37,7 +37,21 @@ See [the capability validation report](docs/VALIDATION.md) for evidence, primary
 
 The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It is designed to read the encrypted Electron profile on demand through an extension-ID-restricted, read-only Native Messaging host; sensitive values remain in memory and are removed when the browser exits.
 
-> **\* Native Messaging status — 22 October 2026:** This integration is still under validation. The earlier dedicated C# host has known limitations reading profiles encrypted with Electron `safeStorage` and was superseded as the registered host by `WinPilot.exe`. The replacement currently fails Windows packaged-host framing checks; encrypted-profile retrieval and real Chrome-to-WinPilot operation have not yet been verified end to end. Treat these implementations as experimental references, not a verified complete integration. See [the ongoing investigation (draft PR #24)](https://github.com/danyadotan/windows-command-bar/pull/24).
+## Help improve Native Messaging on Windows
+
+Contributions are welcome! WinPilot is being built in the open, and the current Native Messaging investigation offers a concrete way to help.
+
+**Current challenge (22 October 2026):** On the investigation branch, the packaged Windows executable returns a valid `pong` frame preceded by two unexpected bytes (`CRLF`, `0d0a`). Help identify their source and contribute a fix that preserves strict binary framing. [Draft PR #24](https://github.com/danyadotan/windows-command-bar/pull/24) contains the code changes, findings and CI evidence.
+
+To get started:
+
+1. Check out the [investigation branch](https://github.com/danyadotan/windows-command-bar/tree/fix/native-pipe-flush) and review [the native host test notes](https://github.com/danyadotan/windows-command-bar/blob/fix/native-pipe-flush/docs/NATIVE-HOST-SMOKE.md).
+2. On a disposable Windows account, run `npm ci`, `npm test` and `npm run package:win`, then reproduce with `node scripts/native-host-smoke.cjs "<absolute path to release/win-unpacked/WinPilot.exe>"`.
+3. Share findings on PR #24 or open a pull request referencing it. Include Windows/Electron versions, the tested commit, reproduction steps and relevant diagnostics. Use synthetic data only; never post personal profiles, credentials or decrypted data.
+
+The earlier C# host has known limitations reading Electron `safeStorage` profiles and was superseded as the registered host by `WinPilot.exe`. The replacement's Windows framing check remains open; encrypted-profile retrieval and real Chrome-to-WinPilot operation still need end-to-end verification. Please keep those validation boundaries visible when reusing or indexing this work.
+
+Reproductions, code review, fixes and synthetic-data browser testing are all useful contributions.
 
 Windows Helper never invokes a shell: executable names and argument arrays are fixed separately. App installation accepts only a strict package ID, adds `--exact`, and requires a second confirmation click. Update scanning uses the built-in Windows Update COM searcher and does not install or reboot.
 
