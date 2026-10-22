@@ -35,7 +35,9 @@ Only loopback endpoints are accepted, redirects are blocked, and local generatio
 
 See [the capability validation report](docs/VALIDATION.md) for evidence, primary sources, and production gaps.
 
-The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It can read the encrypted Electron profile on demand through an extension-ID-restricted, read-only Native Messaging host; sensitive values remain in memory and are removed when the browser exits.
+The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It is designed to read the encrypted Electron profile on demand through an extension-ID-restricted, read-only Native Messaging host; sensitive values remain in memory and are removed when the browser exits.
+
+> **\* Native Messaging status — 22 October 2026:** This integration is still under validation. The earlier dedicated C# host has known limitations reading profiles encrypted with Electron `safeStorage` and was superseded as the registered host by `WinPilot.exe`. The replacement currently fails Windows packaged-host framing checks; encrypted-profile retrieval and real Chrome-to-WinPilot operation have not yet been verified end to end. Treat these implementations as experimental references, not a verified complete integration. See [the ongoing investigation (draft PR #24)](https://github.com/danyadotan/windows-command-bar/pull/24).
 
 Windows Helper never invokes a shell: executable names and argument arrays are fixed separately. App installation accepts only a strict package ID, adds `--exact`, and requires a second confirmation click. Update scanning uses the built-in Windows Update COM searcher and does not install or reboot.
 
