@@ -37,21 +37,25 @@ See [the capability validation report](docs/VALIDATION.md) for evidence, primary
 
 The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It is designed to read the encrypted Electron profile on demand through an extension-ID-restricted, read-only Native Messaging host; sensitive values remain in memory and are removed when the browser exits.
 
-## Help improve Native Messaging on Windows
+## Status and next contribution (4 November 2026)
 
-Contributions are welcome! WinPilot is being built in the open, and the current Native Messaging investigation offers a concrete way to help.
+WinPilot is in development. The desktop capabilities above are implemented; the browser companion remains experimental and is not verified end to end.
 
-**Current challenge (22 October 2026):** On the investigation branch, the packaged Windows executable returns a valid `pong` frame preceded by two unexpected bytes (`CRLF`, `0d0a`). Help identify their source and contribute a fix that preserves strict binary framing. [Draft PR #24](https://github.com/danyadotan/windows-command-bar/pull/24) contains the code changes, findings and CI evidence.
+The [latest main Windows run checked for this update](https://github.com/danyadotan/windows-command-bar/actions/runs/39817877696) passed the dependency audit, unit tests, build and packaging, but **failed the packaged Native Messaging smoke**. Installation lifecycle, integrity evidence and artifact uploads were skipped. Earlier passing runs do not establish readiness of the current main revision.
 
-To get started:
+### Help close one concrete blocker
 
-1. Check out the [investigation branch](https://github.com/danyadotan/windows-command-bar/tree/fix/native-pipe-flush) and review [the native host test notes](https://github.com/danyadotan/windows-command-bar/blob/fix/native-pipe-flush/docs/NATIVE-HOST-SMOKE.md).
-2. On a disposable Windows account, run `npm ci`, `npm test` and `npm run package:win`, then reproduce with `node scripts/native-host-smoke.cjs "<absolute path to release/win-unpacked/WinPilot.exe>"`.
-3. Share findings on PR #24 or open a pull request referencing it. Include Windows/Electron versions, the tested commit, reproduction steps and relevant diagnostics. Use synthetic data only; never post personal profiles, credentials or decrypted data.
+**[Contribution task #25: resolve the Native Messaging frame prefix and verify the Chrome flow](https://github.com/danyadotan/windows-command-bar/issues/25).** It includes a pinned reproduction, evidence requirements and acceptance checks. Start with a reproducible Windows report or a focused explanation of the extra stdout bytes.
 
-The earlier C# host has known limitations reading Electron `safeStorage` profiles and was superseded as the registered host by `WinPilot.exe`. The replacement's Windows framing check remains open; encrypted-profile retrieval and real Chrome-to-WinPilot operation still need end-to-end verification. Please keep those validation boundaries visible when reusing or indexing this work.
+[PR #24](https://github.com/danyadotan/windows-command-bar/pull/24) merged on 22 October. It fixed the investigated stdin EOF problem and retained diagnostic work, but recorded two unexpected bytes (`CRLF`, `0d0a`) before the valid `pong` frame. That remaining blocker is tracked in #25; merging the investigation did not demonstrate a working browser integration.
 
-Reproductions, code review, fixes and synthetic-data browser testing are all useful contributions.
+For current work, branch from `main` and read [the native host test notes](docs/NATIVE-HOST-SMOKE.md). Use a disposable Windows account and synthetic data only. Report the tested commit and Windows/Electron versions. Reproductions, code review and fixes are welcome.
+
+The earlier C# host has known limitations reading Electron `safeStorage` profiles and was superseded as the registered host by `WinPilot.exe`. Exact binary framing, installed encrypted-profile retrieval and real Chrome-to-WinPilot operation must each be verified. Do not hide framing failures by stripping bytes or substituting the legacy host.
+
+### XERJ contributor profile
+
+[Danya Dotan · WinPilot on the XERJ Corpus Hub](https://hub.xerj.org/contributors/danyadotan). XERJ confirmed the contributor page on 28 October. Contributors discovering this code through the Hub are welcome to join [task #25](https://github.com/danyadotan/windows-command-bar/issues/25). The listing is a discovery route, not a release certification; keep the source commit, MIT attribution and validation limits attached when reusing this work.
 
 Windows Helper never invokes a shell: executable names and argument arrays are fixed separately. App installation accepts only a strict package ID, adds `--exact`, and requires a second confirmation click. Update scanning uses the built-in Windows Update COM searcher and does not install or reboot.
 
