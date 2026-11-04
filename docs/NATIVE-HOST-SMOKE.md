@@ -20,7 +20,9 @@ this script does not claim to exercise an upgrade from an older release.
 
 ## Windows stdin investigation (22 October 2026)
 
-PR #23 has already merged; follow-up work is in PR #24.
+PR #23 and PR #24 have both merged. The unresolved framing problem is tracked in
+[issue #25](https://github.com/danyadotan/windows-command-bar/issues/25).
+PR #24 remains the historical investigation record.
 Electron 44.7.0's lib/common/init.ts replaces process.stdin on Windows with
 an EOF-only Readable. Native mode therefore exited zero without reading a request.
 The follow-up reads inherited fd 0 directly and waits for output write callbacks.
@@ -32,11 +34,21 @@ The source of those two extra bytes remains unresolved. Disabling console
 attachment, detached launch, using a direct fs output stream versus process.stdout,
 and the no-stdio-init diagnostic did not resolve it. Experimental launch flags
 have been removed; the smoke still matches browser arguments and rejects all
-unexpected bytes. Do not merge or claim the Windows host is fixed yet.
+unexpected bytes. PR #24 merged on 22 October despite that unresolved result;
+do not claim the Windows host is fixed yet.
 
 Installer/safeStorage checks remain blocked by the packaged-host failure.
 The production store remains app.getPath('userData')/secure. That path review
 does not prove cross-process decryption; the synthetic-only Windows test must pass.
+
+## Status checked 4 November 2026
+
+The latest checked main run, [39817877696](https://github.com/danyadotan/windows-command-bar/actions/runs/39817877696),
+tested commit `5dc39807ca846fcf62f3dd94dba160ee4b7be27c`. Audit, unit tests,
+build and packaging passed; packaged Native Messaging failed. Installation,
+uninstall, synthetic profile retrieval, installer integrity evidence and artifact
+uploads were skipped. The fixture and lifecycle descriptions above describe
+intended checks, not a passing result for this revision.
 
 ## Evidence boundary
 
