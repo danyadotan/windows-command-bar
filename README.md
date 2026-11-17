@@ -2,6 +2,8 @@
 
 MVP for a Windows command bar that combines AI text assistance with safe local automation.
 
+**Know Electron on Windows?** [Help explain two unexpected stdout bytes in Native Messaging (#25)](https://github.com/danyadotan/windows-command-bar/issues/25). Start with source review and one testable observation; no installation or complete fix is required for a first contribution.
+
 ## What is implemented
 
 - Floating Electron command bar (`Alt+Space`)
@@ -37,15 +39,17 @@ See [the capability validation report](docs/VALIDATION.md) for evidence, primary
 
 The browser companion is loaded separately for testing. See [its installation and privacy notes](browser-extension/README.md). It is designed to read the encrypted Electron profile on demand through an extension-ID-restricted, read-only Native Messaging host; sensitive values remain in memory and are removed when the browser exits.
 
-## Status and next contribution (4 November 2026)
+## Status and next contribution (17 November 2026)
 
 WinPilot is in development. The desktop capabilities above are implemented; the browser companion remains experimental and is not verified end to end.
 
-The [latest main Windows run checked for this update](https://github.com/danyadotan/windows-command-bar/actions/runs/39817877696) passed the dependency audit, unit tests, build and packaging, but **failed the packaged Native Messaging smoke**. Installation lifecycle, integrity evidence and artifact uploads were skipped. Earlier passing runs do not establish readiness of the current main revision.
+The [latest listed main Windows run](https://github.com/danyadotan/windows-command-bar/actions/runs/41890904360), from 4 November, **failed the dependency audit** (11 reported vulnerabilities: 7 moderate, 4 high). Tests, build, packaging, Native Messaging, installation lifecycle and artifact uploads were skipped. These dependencies need maintenance before a fresh full verification.
+
+The [earlier 22 October run](https://github.com/danyadotan/windows-command-bar/actions/runs/39817877696) passed audit, unit tests, build and packaging but failed the packaged Native Messaging smoke. The later audit failure does not resolve that framing blocker. Earlier passing runs do not establish readiness of the current main revision.
 
 ### Help close one concrete blocker
 
-**[Contribution task #25: resolve the Native Messaging frame prefix and verify the Chrome flow](https://github.com/danyadotan/windows-command-bar/issues/25).** It includes a pinned reproduction, evidence requirements and acceptance checks. Start with a reproducible Windows report or a focused explanation of the extra stdout bytes.
+**[Task #25: where do two CRLF bytes before a native pong come from?](https://github.com/danyadotan/windows-command-bar/issues/25)** Start with three linked source files and one evidence-backed observation or testable hypothesis. Windows reproduction and full browser acceptance checks are separate follow-up stages; contributors can help with just one part.
 
 [PR #24](https://github.com/danyadotan/windows-command-bar/pull/24) merged on 22 October. It fixed the investigated stdin EOF problem and retained diagnostic work, but recorded two unexpected bytes (`CRLF`, `0d0a`) before the valid `pong` frame. That remaining blocker is tracked in #25; merging the investigation did not demonstrate a working browser integration.
 
